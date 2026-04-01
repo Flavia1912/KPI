@@ -145,13 +145,19 @@ function parseCSV(text) {
   CSV_SEP = detectSeparator(text);
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
-  // Normalize headers: lowercase, collapse all whitespace/newlines to single space
-  const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase()
-    .replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim());
+  // Normalize headers: strip quotes, lowercase, collapse whitespace
+  const headers = parseCSVRow(lines[0]).map(h => h.trim()
+    .replace(/^["']+|["']+$/g,'')  // strip surrounding quotes
+    .toLowerCase()
+    .replace(/[\r\n\t]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim());
   return lines.slice(1).map(line => {
     const vals = parseCSVRow(line);
     const obj = {};
-    headers.forEach((h,i) => { obj[h] = (vals[i]||'').trim(); });
+    headers.forEach((h,i) => {
+      obj[h] = (vals[i]||'').trim().replace(/^["']+|["']+$/g,'').trim();
+    });
     return obj;
   }).filter(r => r['datum'] && r['datum'].trim());
 }
