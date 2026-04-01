@@ -144,7 +144,9 @@ function toCsvUrl(url, sheet) {
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
-  const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase().replace(/\n/g,' '));
+  // Normalize headers: lowercase, collapse all whitespace/newlines to single space
+  const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase()
+    .replace(/[\r\n\t]+/g,' ').replace(/\s+/g,' ').trim());
   return lines.slice(1).map(line => {
     const vals = parseCSVRow(line);
     const obj = {};
@@ -192,7 +194,7 @@ function processRows(rows, code) {
     const datum = g(r,'datum');
     const wt    = g(r,'wochentag');
     // Ist-Umsatz: Excel-Header heißt "ist\n umsatz" → nach CSV-Export: "ist  umsatz" oder ähnlich
-    const ist   = parseNum(g(r,'ist\n umsatz','ist umsatz','ist-umsatz','ist_umsatz','umsatz'));
+    const ist   = parseNum(g(r,'ist umsatz','ist\n umsatz','ist-umsatz','ist_umsatz','umsatz'));
     // Soll-Umsatz: erste Soll-Spalte (nicht die fortlaufende)
     const soll  = parseNum(g(r,'soll\n umsatz','soll umsatz','soll-umsatz','soll_umsatz'));
     // Retoure in %: Excel "retoure ist\n in %" → CSV: "retoure ist  in %"
@@ -216,7 +218,7 @@ function processRows(rows, code) {
   const allMapped = rows.map(normRow);
   console.log('=== DEBUG Sheet Rows ===');
   console.log('Total rows:', rows.length);
-  console.log('First raw row keys:', rows[0] ? Object.keys(rows[0]) : 'none');
+  console.log('Headers:', rows[0] ? Object.keys(rows[0]).map(k=>JSON.stringify(k)) : 'none');
   console.log('First raw row:', rows[0]);
   console.log('First mapped:', allMapped[0]);
   console.log('Second mapped:', allMapped[1]);
