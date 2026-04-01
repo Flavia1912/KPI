@@ -142,6 +142,7 @@ function toCsvUrl(url, sheet) {
 }
 
 function parseCSV(text) {
+  CSV_SEP = detectSeparator(text);
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
   // Normalize headers: lowercase, collapse all whitespace/newlines to single space
@@ -155,12 +156,20 @@ function parseCSV(text) {
   }).filter(r => r['datum'] && r['datum'].trim());
 }
 
+function detectSeparator(text) {
+  // Detect if CSV uses comma or semicolon
+  const firstLine = text.split('\n')[0];
+  const commas = (firstLine.match(/,/g)||[]).length;
+  const semis = (firstLine.match(/;/g)||[]).length;
+  return semis > commas ? ';' : ',';
+}
+let CSV_SEP = ',';
 function parseCSVRow(line) {
   const res=[]; let cur='', inQ=false;
   for (let i=0;i<line.length;i++){
     const ch=line[i];
     if(ch==='"'){inQ=!inQ;continue;}
-    if(ch===','&&!inQ){res.push(cur);cur='';continue;}
+    if(ch===CSV_SEP&&!inQ){res.push(cur);cur='';continue;}
     cur+=ch;
   }
   res.push(cur);
