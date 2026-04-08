@@ -206,7 +206,7 @@ function processRows(rows, code) {
     const wt = String(r['wochentag'] || '');
     const ist = parseNum(g(r,'ist umsatz','ist-umsatz','ist_umsatz','umsatz'));
     const soll = parseNum(g(r,'soll umsatz','soll-umsatz','soll_umsatz'));
-    let retPct = parseNum(g(r,'retourenquote %','retourenquote%','retoure %','retoure_pct','retourenquote'));
+    let retPct = parseNum(g(r,'retoure ist in %','retourenquote %','retourenquote%','retoure %','retoure_pct','retourenquote'));
     if (retPct != null && retPct < 1) retPct = Math.round(retPct * 10000) / 100;
     const kunden = parseNum(g(r,'kunden'));
     const bon = parseNum(g(r,'durchschnittsbon','durch schnitts','bon'));
@@ -303,27 +303,29 @@ function siBar(ist, soll, label, stCls) {
 function getData() { return liveData || FALLBACK; }
 function dataSource() { return liveData ? '🟢 Live (Google Sheets)' : '🟡 Q1 2026 (Offline)'; }
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznuyd8w3VqrfwgiQP75o0_zRG_ceHBrgMpyMWrgvvmNoGQcJIrMKtwcbnDPLiX4_GN4A/exec';
-let allPins = {};
+// ── PINs hier ändern ──────────────────────────────
+const PINS = {
+  'B1':          '1234',
+  'B5':          '2345',
+  'B7':          '3456',
+  'B8':          '4567',
+  'B11':         '5678',
+  'B12':         '6789',
+  'B16':         '7890',
+  'Verwaltung':  '4444',
+  'vl':          '9999'
+};
+// ──────────────────────────────────────────────────
+let allPins = {...PINS};
 
 async function loadPins() {
-  try {
-    const res = await fetch(SCRIPT_URL + '?action=getPins');
-    const data = await res.json();
-    allPins = data;
-    return true;
-  } catch(e) {
-    console.log('PIN-Fehler:', e);
-    return false;
-  }
+  allPins = {...PINS};
+  return true;
 }
 
 async function savePin(rolle, pin) {
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=setPin&rolle=${encodeURIComponent(rolle)}&pin=${encodeURIComponent(pin)}`);
-    const data = await res.json();
-    return data.success;
-  } catch(e) { return false; }
+  // PINs können nur direkt im Code geändert werden
+  return false;
 }
 
 function showLogin() {
@@ -452,7 +454,7 @@ async function showVerwaltung() {
     const namen = {vl:'Verkaufsleiter',Verwaltung:'Verwaltung',...Object.fromEntries(CODES.map(c=>[c,D[c]?.name||c]))};
     document.getElementById('mc').innerHTML = `
     <div class="card"><div class="ctitle">Zugänge & PINs</div>
-      <p style="font-size:12px;color:var(--light);margin-bottom:16px">PINs direkt hier ändern – wird sofort im Google Sheet gespeichert.</p>
+      <p style="font-size:12px;color:var(--light);margin-bottom:16px">PINs können nur direkt im Code der index.html auf GitHub geändert werden (Bereich „PINs hier ändern").</p>
       <table>
         <thead><tr><th>Rolle</th><th>Aktueller PIN</th><th></th></tr></thead>
         <tbody>${rollen.map(r=>`<tr>
@@ -460,9 +462,7 @@ async function showVerwaltung() {
           <td><input id="pin-${r}" type="text" value="${allPins[r]||''}" 
             style="width:90px;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;text-align:center;font-family:Inter"
             maxlength="10"></td>
-          <td><button onclick="savePinRow('${r}')" 
-            style="padding:5px 12px;background:var(--black);color:white;border:none;border-radius:var(--rsm);font-size:12px;cursor:pointer">
-            Speichern</button></td>
+          <td style="font-size:11px;color:var(--light)">im Code ändern</td>
         </tr>`).join('')}
         </tbody>
       </table>
@@ -700,9 +700,7 @@ function showVL() {
       </tr>`;}).join('')}</tbody>
     </table></div></div>
     <div class="card"><div class="ctitle">Ø Tagesumsatz nach Filiale</div><div style="position:relative;height:${CODES.length*44+60}px"><canvas id="c1"></canvas></div></div>
-    <div class="card"><div class="ctitle">Q1-Gesamtumsatz: ${fmtK(gesamtQ)} €</div>
-      <div class="sgrid">${CODES.map(c=>`<div class="scard"><div class="snum" style="font-size:1.2rem">${fmtK(D[c].gesamt_umsatz)}</div><div class="slabel">${D[c].name}</div></div>`).join('')}</div>
-    </div>`;
+`;
 
     document.querySelectorAll('[data-c]').forEach(r=>r.onclick=()=>showFL(r.dataset.c));
     c1=new Chart(document.getElementById('c1'),{type:'bar',
