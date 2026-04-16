@@ -151,7 +151,6 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
   <div id="view-fl">
     <div class="nav-tabs">
       <div class="nav-tab active" onclick="switchTab(this,'fl-uebersicht')">Übersicht</div>
-      <div class="nav-tab" onclick="switchTab(this,'fl-soll-ist')">Soll/Ist & Stunden</div>
     </div>
     <div id="fl-uebersicht" class="page active">
       <div class="praemien-card" id="fl-praemien-card">
@@ -172,20 +171,10 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
         <div class="hero-grid" id="fl-hero"></div>
       </div>
       <div class="card">
-        <h2>Letzte 14 Einträge</h2>
+        <h2 id="fl-table-title">Einträge April 2026</h2>
         <div style="overflow-x:auto">
           <table class="data-table" id="fl-table"></table>
         </div>
-      </div>
-    </div>
-    <div id="fl-soll-ist" class="page">
-      <div class="card">
-        <h2>Soll vs. Ist – Umsatz (letzte 14 Tage)</h2>
-        <div class="chart-wrap"><canvas id="chart-soll-ist"></canvas></div>
-      </div>
-      <div class="card">
-        <h2>Stundenleistung (letzte 14 Tage)</h2>
-        <div class="chart-wrap"><canvas id="chart-stunden"></canvas></div>
       </div>
     </div>
   </div>
@@ -510,14 +499,20 @@ function renderFL() {
     ${heroBox('Std-Leistung', fmtN(last.std_leistung_ist), pillStunden(last.std_leistung_ist))}
   `;
 
-  // Tabelle letzte 14
-  const t14 = rows.slice(-14).reverse();
+  // Tabelle: alle Einträge des aktuellen Monats
+  const refDate = last._date || new Date();
+  const refYear = refDate.getFullYear();
+  const refMonth = refDate.getMonth();
+  const monthRows = rows.filter(r => r._date && r._date.getFullYear() === refYear && r._date.getMonth() === refMonth);
+  const monatName = refDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  document.getElementById('fl-table-title').textContent = 'Einträge ' + monatName;
+  const tableRows = [...monthRows].reverse();
   document.getElementById('fl-table').innerHTML = `
     <thead><tr>
       <th>Datum</th><th>Wochentag</th><th>Soll</th><th>Ist</th><th>Diff</th>
       <th>Retoure</th><th>Bon</th><th>Kunden</th><th>Std-Lstg</th>
     </tr></thead>
-    <tbody>${t14.map(r => `<tr>
+    <tbody>${tableRows.map(r => `<tr>
       <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
       <td>${r.wochentag||'–'}</td>
       <td>${fmtEur(r.soll_umsatz)}</td>
@@ -529,10 +524,6 @@ function renderFL() {
       <td>${pillStunden(r.std_leistung_ist)} ${fmtN(r.std_leistung_ist)}</td>
     </tr>`).join('')}</tbody>
   `;
-
-  // Charts
-  renderChartSollIst(rows.slice(-14));
-  renderChartStunden(rows.slice(-14));
 }
 
 function renderChartSollIst(rows) {
