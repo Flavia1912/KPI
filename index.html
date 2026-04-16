@@ -156,27 +156,20 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
     <div id="fl-uebersicht" class="page active">
       <div class="praemien-card" id="fl-praemien-card">
         <div class="praemien-header">
-          <span class="praemien-title">Monatsziel Prämie</span>
+          <span class="praemien-title">Monatsziel</span>
           <span id="fl-praemien-monat" style="font-size:12px;color:#aaa"></span>
         </div>
-        <div id="fl-praemien-label" class="praemien-label">–</div>
-        <div id="fl-praemien-sub" class="praemien-sub"></div>
-        <div class="praemien-bar-wrap">
+        <div class="praemien-bar-wrap" style="margin-top:10px">
           <div class="praemien-bar-fill" id="fl-praemien-bar" style="width:0%"></div>
         </div>
         <div class="praemien-footer">
           <span class="praemien-pct" id="fl-praemien-pct"></span>
-          <span class="praemien-ziel" id="fl-praemien-ziel"></span>
+          <div id="fl-praemien-badge" style="display:none" class="praemien-badge">🎉 Ziel erreicht!</div>
         </div>
-        <div id="fl-praemien-badge" style="display:none" class="praemien-badge">🎉 Ziel erreicht!</div>
       </div>
       <div class="card">
         <div class="hero-date" id="fl-hero-date"></div>
         <div class="hero-grid" id="fl-hero"></div>
-      </div>
-      <div class="card">
-        <h2>Ø letzte 7 Tage</h2>
-        <div class="kpi-grid" id="fl-avg7"></div>
       </div>
       <div class="card">
         <h2>Letzte 14 Einträge</h2>
@@ -440,7 +433,7 @@ async function fetchBranch(branch) {
   }
   // Sort by date desc, take last 30
   rows.sort((a,b) => (a._date||0) - (b._date||0));
-  return rows.slice(-30);
+  return rows.slice(-60);
 }
 
 function setStatus(state) {
@@ -481,10 +474,7 @@ function renderPraemienBalken(rows) {
   document.getElementById('fl-praemien-monat').textContent = monatLabel;
 
   if (sollFl == null || sollFl === 0) {
-    document.getElementById('fl-praemien-label').textContent = 'Keine Solldaten';
-    document.getElementById('fl-praemien-sub').textContent = 'Soll-Umsatz fortlaufend noch nicht eingetragen.';
-    document.getElementById('fl-praemien-pct').textContent = '';
-    document.getElementById('fl-praemien-ziel').textContent = '';
+    document.getElementById('fl-praemien-pct').textContent = 'Keine Solldaten';
     return;
   }
 
@@ -494,13 +484,7 @@ function renderPraemienBalken(rows) {
   bar.style.width = pct.toFixed(1) + '%';
   bar.className = 'praemien-bar-fill' + (erreicht ? ' erreicht' : '');
 
-  document.getElementById('fl-praemien-label').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollFl);
-  document.getElementById('fl-praemien-sub').textContent =
-    `${monthRows.length} Einträge im Monat · Tagesdurchschnitt: ${fmtEur(monthRows.length ? istKumuliert / monthRows.length : 0)}`;
   document.getElementById('fl-praemien-pct').textContent = pct.toFixed(1) + '% erreicht';
-  document.getElementById('fl-praemien-ziel').textContent = erreicht
-    ? '+' + fmtEur(istKumuliert - sollFl) + ' über Ziel'
-    : 'Noch ' + fmtEur(sollFl - istKumuliert) + ' bis zum Ziel';
 
   const badge = document.getElementById('fl-praemien-badge');
   badge.style.display = erreicht ? 'inline-flex' : 'none';
@@ -511,7 +495,6 @@ function renderFL() {
   const rows = allData[currentUser.branch] || [];
   if (!rows.length) return;
   const last = rows[rows.length - 1];
-  const recent7 = rows.slice(-7);
 
   // Prämien-Balken
   renderPraemienBalken(rows);
@@ -527,22 +510,12 @@ function renderFL() {
     ${heroBox('Std-Leistung', fmtN(last.std_leistung_ist), pillStunden(last.std_leistung_ist))}
   `;
 
-  // Ø 7 Tage
-  const avg = calcAvg(recent7);
-  document.getElementById('fl-avg7').innerHTML = `
-    ${kpiBox('Ø Ist-Umsatz', fmtEur(avg.ist_umsatz))}
-    ${kpiBox('Ø Retourenquote', fmtPct(avg.retoure_pct), pillRetoure(avg.retoure_pct))}
-    ${kpiBox('Ø Kundenbon', fmtEur(avg.bon))}
-    ${kpiBox('Ø Kunden/Tag', fmtN(avg.kunden))}
-    ${kpiBox('Ø Stundenleistung', fmtN(avg.std_leistung_ist), pillStunden(avg.std_leistung_ist))}
-  `;
-
   // Tabelle letzte 14
   const t14 = rows.slice(-14).reverse();
   document.getElementById('fl-table').innerHTML = `
     <thead><tr>
       <th>Datum</th><th>Wochentag</th><th>Soll</th><th>Ist</th><th>Diff</th>
-      <th>Retoure</th><th>Bon</th><th>Kunden</th><th>VK Std</th><th>Std-Lstg</th>
+      <th>Retoure</th><th>Bon</th><th>Kunden</th><th>Std-Lstg</th>
     </tr></thead>
     <tbody>${t14.map(r => `<tr>
       <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
@@ -553,7 +526,6 @@ function renderFL() {
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
       <td>${fmtEur(r.bon)}</td>
       <td>${fmtN(r.kunden)}</td>
-      <td>${fmtN(r.vk_std_ist)}</td>
       <td>${pillStunden(r.std_leistung_ist)} ${fmtN(r.std_leistung_ist)}</td>
     </tr>`).join('')}</tbody>
   `;
