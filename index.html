@@ -494,13 +494,13 @@ function renderPraemienBalken(rows) {
   bar.style.width = pct.toFixed(1) + '%';
   bar.className = 'praemien-bar-fill' + (erreicht ? ' erreicht' : '');
 
-  document.getElementById('fl-praemien-label').textContent = fmt€(istKumuliert) + ' von ' + fmt€(sollFl);
+  document.getElementById('fl-praemien-label').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollFl);
   document.getElementById('fl-praemien-sub').textContent =
-    `${monthRows.length} Einträge im Monat · Tagesdurchschnitt: ${fmt€(monthRows.length ? istKumuliert / monthRows.length : 0)}`;
+    `${monthRows.length} Einträge im Monat · Tagesdurchschnitt: ${fmtEur(monthRows.length ? istKumuliert / monthRows.length : 0)}`;
   document.getElementById('fl-praemien-pct').textContent = pct.toFixed(1) + '% erreicht';
   document.getElementById('fl-praemien-ziel').textContent = erreicht
-    ? '+' + fmt€(istKumuliert - sollFl) + ' über Ziel'
-    : 'Noch ' + fmt€(sollFl - istKumuliert) + ' bis zum Ziel';
+    ? '+' + fmtEur(istKumuliert - sollFl) + ' über Ziel'
+    : 'Noch ' + fmtEur(sollFl - istKumuliert) + ' bis zum Ziel';
 
   const badge = document.getElementById('fl-praemien-badge');
   badge.style.display = erreicht ? 'inline-flex' : 'none';
@@ -520,9 +520,9 @@ function renderFL() {
   const heroDate = last._date ? last._date.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}) : '–';
   document.getElementById('fl-hero-date').textContent = 'Letzter Eintrag: ' + heroDate;
   document.getElementById('fl-hero').innerHTML = `
-    ${heroBox('Ist-Umsatz', fmt€(last.ist_umsatz))}
+    ${heroBox('Ist-Umsatz', fmtEur(last.ist_umsatz))}
     ${heroBox('Retoure', fmtPct(last.retoure_pct), pillRetoure(last.retoure_pct))}
-    ${heroBox('Ø Bon', fmt€(last.bon))}
+    ${heroBox('Ø Bon', fmtEur(last.bon))}
     ${heroBox('Kunden', fmtN(last.kunden))}
     ${heroBox('Std-Leistung', fmtN(last.std_leistung_ist), pillStunden(last.std_leistung_ist))}
   `;
@@ -530,9 +530,9 @@ function renderFL() {
   // Ø 7 Tage
   const avg = calcAvg(recent7);
   document.getElementById('fl-avg7').innerHTML = `
-    ${kpiBox('Ø Ist-Umsatz', fmt€(avg.ist_umsatz))}
+    ${kpiBox('Ø Ist-Umsatz', fmtEur(avg.ist_umsatz))}
     ${kpiBox('Ø Retourenquote', fmtPct(avg.retoure_pct), pillRetoure(avg.retoure_pct))}
-    ${kpiBox('Ø Kundenbon', fmt€(avg.bon))}
+    ${kpiBox('Ø Kundenbon', fmtEur(avg.bon))}
     ${kpiBox('Ø Kunden/Tag', fmtN(avg.kunden))}
     ${kpiBox('Ø Stundenleistung', fmtN(avg.std_leistung_ist), pillStunden(avg.std_leistung_ist))}
   `;
@@ -547,11 +547,11 @@ function renderFL() {
     <tbody>${t14.map(r => `<tr>
       <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
       <td>${r.wochentag||'–'}</td>
-      <td>${fmt€(r.soll_umsatz)}</td>
-      <td>${fmt€(r.ist_umsatz)}</td>
-      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmt€(r.diff_umsatz)}</td>
+      <td>${fmtEur(r.soll_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
+      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-      <td>${fmt€(r.bon)}</td>
+      <td>${fmtEur(r.bon)}</td>
       <td>${fmtN(r.kunden)}</td>
       <td>${fmtN(r.vk_std_ist)}</td>
       <td>${pillStunden(r.std_leistung_ist)} ${fmtN(r.std_leistung_ist)}</td>
@@ -620,9 +620,9 @@ function renderVLUebersicht() {
   const avgBon = avg(bons);
   const avgKunden = kunden / (7); // per day across all
   document.getElementById('vl-gesamt').innerHTML = `
-    ${kpiBox('Tagesumsatz Gesamt', fmt€(totalUmsatz/7))}
+    ${kpiBox('Tagesumsatz Gesamt', fmtEur(totalUmsatz/7))}
     ${kpiBox('Ø Retourenquote', fmtPct(avgRetoure), pillRetoure(avgRetoure))}
-    ${kpiBox('Ø Kundenbon €', fmt€(avgBon))}
+    ${kpiBox('Ø Kundenbon €', fmtEur(avgBon))}
     ${kpiBox('Kunden / Tag', fmtN(Math.round(avgKunden)))}
   `;
 
@@ -640,9 +640,9 @@ function renderVLUebersicht() {
     <tbody>${rankData.map((r,i) => `<tr>
       <td><span class="rank-num ${i<3?'r'+(i+1):''}">${i+1}</span></td>
       <td><strong>${r.name}</strong></td>
-      <td>${fmt€(r.ist_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-      <td>${fmt€(r.bon)}</td>
+      <td>${fmtEur(r.bon)}</td>
       <td>${fmtN(r.kunden)}</td>
       <td>${r.std_leistung_ist!=null ? (pillStunden(r.std_leistung_ist)+' '+fmtN(r.std_leistung_ist)) : '–'}</td>
       <td>${trendArrow(allData[r.branch]||[])}</td>
@@ -670,9 +670,9 @@ function renderVLKarten() {
     return `<div class="filial-card">
       <h3>${BRANCH_NAMES[b]}</h3>
       <div class="fc-metrics">
-        <div class="fc-metric"><div class="label">Ø Umsatz</div><div class="val">${fmt€(a.ist_umsatz)}</div></div>
+        <div class="fc-metric"><div class="label">Ø Umsatz</div><div class="val">${fmtEur(a.ist_umsatz)}</div></div>
         <div class="fc-metric"><div class="label">Retoure</div><div class="val">${fmtPct(a.retoure_pct)} ${pillRetoure(a.retoure_pct)}</div></div>
-        <div class="fc-metric"><div class="label">Ø Bon</div><div class="val">${fmt€(a.bon)}</div></div>
+        <div class="fc-metric"><div class="label">Ø Bon</div><div class="val">${fmtEur(a.bon)}</div></div>
         <div class="fc-metric"><div class="label">Kunden/Tag</div><div class="val">${fmtN(a.kunden)}</div></div>
         <div class="fc-metric"><div class="label">Std-Leistung</div><div class="val">${a.std_leistung_ist!=null?fmtN(a.std_leistung_ist):'–'} ${pillStunden(a.std_leistung_ist)}</div></div>
         <div class="fc-metric"><div class="label">VK Std</div><div class="val">${a.vk_std_ist!=null?fmtN(a.vk_std_ist):'–'}</div></div>
@@ -743,9 +743,9 @@ function renderVLSollIst() {
     <tbody>${rows.map(r => `<tr>
       <td>${r.branch}</td>
       <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
-      <td>${fmt€(r.soll_umsatz)}</td>
-      <td>${fmt€(r.ist_umsatz)}</td>
-      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmt€(r.diff_umsatz)}</td>
+      <td>${fmtEur(r.soll_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
+      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
     </tr>`).join('')}</tbody>
   `;
@@ -798,7 +798,7 @@ function trendArrow(rows) {
   return `<span style="color:${col}">${arr} ${Math.abs(pct)}%</span>`;
 }
 
-function fmt€(v) { return v != null ? v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+'\u202f€' : '–'; }
+function fmtEur(v) { return v != null ? v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+'\u202f€' : '–'; }
 function fmtPct(v) { return v != null ? v.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : '–'; }
 function fmtN(v) { return v != null ? Math.round(v).toLocaleString('de-DE') : '–'; }
 
