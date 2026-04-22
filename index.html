@@ -10,98 +10,110 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
 /* ── TOPBAR ── */
-#topbar{background:#111;color:#fff;height:52px;display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100}
-#topbar .logo{font-family:'Playfair Display',serif;font-size:18px;letter-spacing:.5px}
-#topbar .sep{width:1px;height:20px;background:#444}
-#topbar .role-label{font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:.8px}
-#topbar .spacer{flex:1}
-#topbar button{background:transparent;border:1.5px solid #444;color:#ccc;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif}
+#topbar{background:#111;color:#fff;height:52px;display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100}
+#topbar .logo{font-family:'Playfair Display',serif;font-size:17px;letter-spacing:.5px;white-space:nowrap}
+#topbar .sep{width:1px;height:20px;background:#444;flex-shrink:0}
+#topbar .role-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#topbar .spacer{flex:1;min-width:0}
+#topbar button{background:transparent;border:1.5px solid #444;color:#ccc;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Inter',sans-serif;white-space:nowrap;flex-shrink:0}
 #topbar button:hover{border-color:#888;color:#fff}
-#status-dot{width:8px;height:8px;border-radius:50%;background:#888;display:inline-block;margin-right:6px}
+#topbar .status-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0}
+#status-dot{width:8px;height:8px;border-radius:50%;background:#888;display:inline-block}
+#status-text{font-size:11px;color:#888;display:none}
 #status-dot.live{background:#4caf50}
-#status-text{font-size:11px;color:#888}
 /* ── LOGIN ── */
-#loginSection{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f3}
-.login-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:48px 40px;width:360px;text-align:center}
-.login-card h1{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:6px}
-.login-card p{color:#777;font-size:13px;margin-bottom:28px}
-.pin-display{font-size:32px;letter-spacing:12px;height:48px;margin-bottom:20px;font-family:'Playfair Display',serif;color:#111;min-width:140px;display:inline-block}
-.pin-dots span{display:inline-block;width:12px;height:12px;border-radius:50%;background:#ddd;margin:0 4px;transition:background .15s}
+#loginSection{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f3;padding:16px}
+.login-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:36px 28px;width:100%;max-width:340px;text-align:center}
+.login-card h1{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:6px}
+.login-card p{color:#777;font-size:13px;margin-bottom:24px}
+.pin-dots span{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ddd;margin:0 5px;transition:background .15s}
 .pin-dots span.filled{background:#111}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
-.numpad button{background:#fff;border:1.5px solid #e0e0e0;border-radius:6px;height:52px;font-size:20px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .1s}
-.numpad button:hover{background:#f5f5f3;border-color:#bbb}
-.numpad button:active{background:#111;color:#fff}
-.login-err{color:#c0392b;font-size:13px;margin-top:12px;min-height:18px}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}
+.numpad button{background:#fff;border:1.5px solid #e0e0e0;border-radius:10px;height:64px;font-size:22px;cursor:pointer;font-family:'Inter',sans-serif;transition:background .1s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.numpad button:active{background:#111;color:#fff;border-color:#111}
+.login-err{color:#c0392b;font-size:13px;margin-top:14px;min-height:18px}
 /* ── MAIN ── */
 #app{display:none}
-.nav-tabs{background:#fff;border-bottom:1.5px solid #e0e0e0;padding:0 24px;display:flex;gap:0}
-.nav-tab{padding:14px 20px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;color:#777;transition:all .15s}
+.nav-tabs{background:#fff;border-bottom:1.5px solid #e0e0e0;padding:0 16px;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-tab{padding:14px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;color:#777;transition:all .15s;white-space:nowrap}
 .nav-tab.active{color:#111;border-bottom-color:#111}
-.nav-tab:hover{color:#333}
-.page{display:none;padding:24px}
-.page.active{display:block}
 /* ── CARDS ── */
-.card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:24px;margin-bottom:20px}
-.card h2{font-size:14px;font-weight:600;margin-bottom:18px;color:#111}
+.card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:14px}
+.card h2{font-size:13px;font-weight:600;margin-bottom:14px;color:#111}
 /* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
-.kpi-box{background:#fff;border:1.5px solid #e0e0e0;border-radius:6px;padding:16px 18px}
-.kpi-box .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:6px}
-.kpi-box .val{font-family:'Playfair Display',serif;font-size:26px;color:#111}
-.kpi-box .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:6px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-box{background:#fff;border:1.5px solid #e0e0e0;border-radius:6px;padding:14px}
+.kpi-box .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:4px}
+.kpi-box .val{font-family:'Playfair Display',serif;font-size:22px;color:#111}
+.kpi-box .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px}
 .pill-green{background:#e8f5e9;color:#2e7d32}
 .pill-yellow{background:#fff8e1;color:#f57f17}
 .pill-red{background:#ffebee;color:#c62828}
 /* ── TABLE ── */
-.data-table{width:100%;border-collapse:collapse;font-size:13px}
-.data-table th{text-align:left;padding:8px 12px;background:#f5f5f3;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e0e0e0}
-.data-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#333}
-.data-table tr:hover td{background:#fafafa}
-.data-table tr.today td{background:#fffde7}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;padding:7px 8px;background:#f5f5f3;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#888;border-bottom:1.5px solid #e0e0e0}
+.data-table td{padding:8px 8px;border-bottom:1px solid #f0f0f0;color:#333}
+.data-table tr:active td{background:#fafafa}
 /* ── RANKING ── */
 .rank-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:12px;font-weight:600;background:#f0f0f0;color:#555}
 .rank-num.r1{background:#ffd700;color:#333}
 .rank-num.r2{background:#c0c0c0;color:#333}
 .rank-num.r3{background:#cd7f32;color:#fff}
 /* ── FILIAL CARDS VL ── */
-.filial-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.filial-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:20px;cursor:pointer;transition:box-shadow .15s}
-.filial-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
-.filial-card h3{font-size:14px;font-weight:600;margin-bottom:14px;color:#111}
+.filial-cards{display:grid;grid-template-columns:1fr;gap:12px}
+.filial-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px}
+.filial-card h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#111}
 .fc-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fc-metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#888;margin-bottom:2px}
-.fc-metric .val{font-family:'Playfair Display',serif;font-size:20px;color:#111}
+.fc-metric .val{font-family:'Playfair Display',serif;font-size:18px;color:#111}
 /* ── CHART ── */
-.chart-wrap{position:relative;height:240px}
+.chart-wrap{position:relative;height:220px}
 /* ── LETZTER EINTRAG HERO ── */
-.hero-date{font-size:12px;color:#888;margin-bottom:16px}
-.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.hero-date{font-size:12px;color:#888;margin-bottom:14px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero-item{background:#f9f9f8;border-radius:6px;padding:12px}
 .hero-item .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:4px}
-.hero-item .val{font-family:'Playfair Display',serif;font-size:28px;color:#111;line-height:1}
+.hero-item .val{font-family:'Playfair Display',serif;font-size:24px;color:#111;line-height:1}
 /* ── VERWALTUNG ── */
 .pin-table{width:100%;border-collapse:collapse;font-size:13px}
-.pin-table th{text-align:left;padding:8px 12px;background:#f5f5f3;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e0e0e0}
-.pin-table td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
-.pin-val{font-family:monospace;font-size:15px;letter-spacing:2px;background:#f5f5f3;padding:2px 8px;border-radius:4px}
-/* ── PRÄMIEN-BALKEN ── */
-.praemien-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:24px;margin-bottom:20px}
-.praemien-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
-.praemien-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888}
-.praemien-label{font-family:'Playfair Display',serif;font-size:22px;color:#111}
-.praemien-sub{font-size:12px;color:#888;margin-bottom:14px;margin-top:2px}
-.praemien-bar-wrap{background:#f0f0f0;border-radius:6px;height:18px;overflow:hidden;position:relative}
+.pin-table th{text-align:left;padding:8px 10px;background:#f5f5f3;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e0e0e0}
+.pin-table td{padding:9px 10px;border-bottom:1px solid #f0f0f0}
+.pin-val{font-family:monospace;font-size:14px;letter-spacing:2px;background:#f5f5f3;padding:2px 8px;border-radius:4px}
+/* ── MINI FORTSCHRITTSBALKEN ── */
+.mini-bar-wrap{background:#f0f0f0;border-radius:4px;height:6px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.mini-bar-fill{height:100%;border-radius:4px;background:#111;transition:width .5s ease}
+.mini-bar-fill.erreicht{background:#2e7d32}
+.mini-bar-label{font-size:11px;color:#888;margin-left:4px}
+/* ── FILIAL FARBEN ── */
+/* ── MONATSZIEL ── */
+.praemien-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:14px}
+.praemien-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.praemien-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888}
+.praemien-bar-wrap{background:#f0f0f0;border-radius:6px;height:20px;overflow:hidden}
 .praemien-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;background:#111;min-width:2px}
 .praemien-bar-fill.erreicht{background:#2e7d32}
-.praemien-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.praemien-pct{font-size:13px;font-weight:600;color:#111}
-.praemien-ziel{font-size:13px;color:#888}
-.praemien-badge{display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;margin-top:10px}
-/* RESPONSIVE */
-@media(max-width:600px){
-  .kpi-grid{grid-template-columns:1fr 1fr}
-  .fc-metrics{grid-template-columns:1fr 1fr}
-  .hero-grid{grid-template-columns:1fr 1fr}
+.praemien-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:4px}
+.praemien-pct{font-size:14px;font-weight:600;color:#111}
+.praemien-badge{display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;font-size:13px;font-weight:600;padding:5px 12px;border-radius:20px}
+/* ── PAGE PADDING ── */
+.page{display:none;padding:14px}
+.page.active{display:block}
+/* ── DESKTOP OVERRIDES ── */
+@media(min-width:600px){
+  #status-text{display:inline}
+  .page{padding:24px}
+  .card{padding:24px;margin-bottom:20px}
+  .praemien-card{padding:24px;margin-bottom:20px}
+  .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .kpi-box .val{font-size:26px}
+  .hero-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .hero-item{background:transparent;padding:0}
+  .hero-item .val{font-size:28px}
+  .filial-cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .numpad button{height:52px}
+  .data-table{font-size:13px}
+  .data-table th{font-size:11px;padding:8px 12px}
+  .data-table td{padding:9px 12px}
 }
 </style>
 </head>
@@ -163,6 +175,7 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
         </div>
         <div class="praemien-footer">
           <span class="praemien-pct" id="fl-praemien-pct"></span>
+          <span class="praemien-ziel" id="fl-praemien-betraege" style="font-size:13px;color:#888"></span>
           <div id="fl-praemien-badge" style="display:none" class="praemien-badge">🎉 Ziel erreicht!</div>
         </div>
       </div>
@@ -193,7 +206,7 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
         <div class="kpi-grid" id="vl-gesamt"></div>
       </div>
       <div class="card">
-        <h2>Filial-Ranking (Ø 7 Tage)</h2>
+        <h2 id="vl-ranking-title">Filial-Ranking – lfd. Monat</h2>
         <div style="overflow-x:auto">
           <table class="data-table" id="vl-ranking"></table>
         </div>
@@ -218,10 +231,8 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
     </div>
     <div id="vl-soll-ist" class="page">
       <div class="card">
-        <h2>Soll vs. Ist Umsatz – alle Filialen</h2>
-        <div style="overflow-x:auto">
-          <table class="data-table" id="vl-soll-ist-table"></table>
-        </div>
+        <h2 id="vl-sollIst-title">Soll vs. Ist – lfd. Monat</h2>
+        <div id="vl-soll-ist-table"></div>
       </div>
     </div>
   </div>
@@ -274,7 +285,10 @@ const SHEET_ID = '1gfZeQ74PLWAsHrTbF1SvX8Q6Lwa5WoYxkjbsMPiDhFQ';
 const BRANCHES = ['B1','B5','B7','B8','B11','B12','B16'];
 const BRANCH_NAMES = { B1:'Brandstraße', B5:'Oberer Markt', B7:'Norisstraße', B8:'Knebelstraße', B11:'Waldluststraße', B12:'Laufamholzstraße', B16:'Vogelherdstraße' };
 
-let currentUser = null;
+const BRANCH_COLORS = {
+  B1: '#1a1a2e', B5: '#16213e', B7: '#0f3460',
+  B8: '#533483', B11: '#2b6cb0', B12: '#2c7a7b', B16: '#276749'
+};
 let allData = {}; // { B1: [...rows], ... }
 let chartsInstances = {};
 
@@ -393,36 +407,42 @@ async function loadData() {
 }
 
 async function fetchBranch(branch) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${branch}`;
-  const resp = await fetch(url);
-  const text = await resp.text();
-  const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
-  const colKeys = mapCols(json.table.cols.map(c => c.label));
-  const rows = [];
-  for (const row of json.table.rows) {
-    if (!row.c || !row.c[0] || !row.c[0].v) continue; // skip empty
-    const obj = {};
-    colKeys.forEach((key, i) => {
-      if (!key) return;
-      const cell = row.c[i];
-      obj[key] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : null) : null;
-    });
-    // Parse datum
-    if (obj.datum && typeof obj.datum === 'string' && obj.datum.startsWith('Date(')) {
-      const parts = obj.datum.slice(5,-1).split(',').map(Number);
-      obj._date = new Date(parts[0], parts[1], parts[2]);
-    } else if (obj.datum) {
-      obj._date = new Date(obj.datum);
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${branch}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
+    const colKeys = mapCols(json.table.cols.map(c => c.label));
+    const rows = [];
+    for (const row of json.table.rows) {
+      if (!row.c || !row.c[0] || !row.c[0].v) continue;
+      const obj = {};
+      colKeys.forEach((key, i) => {
+        if (!key) return;
+        const cell = row.c[i];
+        obj[key] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : null) : null;
+      });
+      // Nur Zeilen mit eingetragenem Ist-Umsatz berücksichtigen
+      if (!obj.ist_umsatz) continue;
+      // Parse datum
+      if (obj.datum && typeof obj.datum === 'string' && obj.datum.startsWith('Date(')) {
+        const parts = obj.datum.slice(5,-1).split(',').map(Number);
+        obj._date = new Date(parts[0], parts[1], parts[2]);
+      } else if (obj.datum) {
+        obj._date = new Date(obj.datum);
+      }
+      // Normalize percent fields (Sheet might store as 0.25 or 25)
+      if (obj.retoure_pct !== null && obj.retoure_pct < 2) {
+        obj.retoure_pct = obj.retoure_pct * 100;
+      }
+      rows.push(obj);
     }
-    // Normalize percent fields (Sheet might store as 0.25 or 25)
-    if (obj.retoure_pct !== null && obj.retoure_pct < 2) {
-      obj.retoure_pct = obj.retoure_pct * 100;
-    }
-    rows.push(obj);
+    rows.sort((a,b) => (a._date||0) - (b._date||0));
+    return rows.slice(-60);
+  } catch(e) {
+    console.warn(`Fehler beim Laden von ${branch}:`, e);
+    return [];
   }
-  // Sort by date desc, take last 30
-  rows.sort((a,b) => (a._date||0) - (b._date||0));
-  return rows.slice(-60);
 }
 
 function setStatus(state) {
@@ -474,6 +494,7 @@ function renderPraemienBalken(rows) {
   bar.className = 'praemien-bar-fill' + (erreicht ? ' erreicht' : '');
 
   document.getElementById('fl-praemien-pct').textContent = pct.toFixed(1) + '% erreicht';
+  document.getElementById('fl-praemien-betraege').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollFl);
 
   const badge = document.getElementById('fl-praemien-badge');
   badge.style.display = erreicht ? 'inline-flex' : 'none';
@@ -526,38 +547,6 @@ function renderFL() {
   `;
 }
 
-function renderChartSollIst(rows) {
-  const ctx = document.getElementById('chart-soll-ist').getContext('2d');
-  if (chartsInstances['soll-ist']) chartsInstances['soll-ist'].destroy();
-  chartsInstances['soll-ist'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: rows.map(r => r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : ''),
-      datasets: [
-        { label: 'Soll', data: rows.map(r => r.soll_umsatz||0), backgroundColor: '#e0e0e0', borderRadius: 3 },
-        { label: 'Ist', data: rows.map(r => r.ist_umsatz||0), backgroundColor: '#111', borderRadius: 3 },
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { ticks: { callback: v => v.toLocaleString('de-DE') + ' €' } } } }
-  });
-}
-
-function renderChartStunden(rows) {
-  const ctx = document.getElementById('chart-stunden').getContext('2d');
-  if (chartsInstances['stunden']) chartsInstances['stunden'].destroy();
-  chartsInstances['stunden'] = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: rows.map(r => r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : ''),
-      datasets: [
-        { label: 'Std-Leistung Ist', data: rows.map(r => r.std_leistung_ist||null), borderColor: '#111', backgroundColor: 'rgba(0,0,0,.05)', tension: .3, fill: true },
-        { label: 'Std-Leistung Soll', data: rows.map(r => r.std_leistung_soll||null), borderColor: '#aaa', borderDash: [4,4], tension: .3, fill: false },
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { min: 0 } } }
-  });
-}
-
 // ═══ VERKAUFSLEITER ═══
 function renderVL() {
   renderVLUebersicht();
@@ -567,49 +556,63 @@ function renderVL() {
 }
 
 function renderVLUebersicht() {
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
+  const currentMonthRows = b => (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+  const monatLabel = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
   // Gesamt-KPIs
-  let totalUmsatz=0, retourePcts=[], bons=[], kunden=0, stdLstg=[];
+  let totalUmsatz=0, retourePcts=[], bons=[], kunden=0, dayCount=0;
   BRANCHES.forEach(b => {
-    const rows = (allData[b]||[]).slice(-7);
+    const rows = currentMonthRows(b);
+    dayCount = Math.max(dayCount, rows.length);
     rows.forEach(r => {
       totalUmsatz += r.ist_umsatz||0;
       if (r.retoure_pct != null) retourePcts.push(r.retoure_pct);
       if (r.bon != null && r.bon > 0) bons.push(r.bon);
       kunden += r.kunden||0;
-      if (r.std_leistung_ist != null) stdLstg.push(r.std_leistung_ist);
     });
   });
   const avgRetoure = avg(retourePcts);
   const avgBon = avg(bons);
-  const avgKunden = kunden / (7); // per day across all
+  const avgKunden = dayCount > 0 ? kunden / (BRANCHES.length * dayCount) : 0;
   document.getElementById('vl-gesamt').innerHTML = `
-    ${kpiBox('Tagesumsatz Gesamt', fmtEur(totalUmsatz/7))}
+    ${kpiBox('Ø Tagesumsatz', fmtEur(dayCount > 0 ? totalUmsatz / (BRANCHES.length * dayCount) : 0))}
     ${kpiBox('Ø Retourenquote', fmtPct(avgRetoure), pillRetoure(avgRetoure))}
-    ${kpiBox('Ø Kundenbon €', fmtEur(avgBon))}
+    ${kpiBox('Ø Kundenbon', fmtEur(avgBon))}
     ${kpiBox('Kunden / Tag', fmtN(Math.round(avgKunden)))}
   `;
 
-  // Ranking
+  // Ranking mit Monatsziel-Balken
   const rankData = BRANCHES.map(b => {
-    const rows = (allData[b]||[]).slice(-7);
+    const rows = currentMonthRows(b);
     const a = calcAvg(rows);
-    return { branch: b, name: BRANCH_NAMES[b], ...a };
+    const istKumuliert = rows.reduce((s,r) => s + (r.ist_umsatz||0), 0);
+    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl != null ? r.soll_umsatz_fl : v, null);
+    const pct = sollFl ? Math.min((istKumuliert / sollFl) * 100, 100) : null;
+    return { branch: b, name: BRANCH_NAMES[b], ...a, istKumuliert, sollFl, pct };
   }).sort((a,b) => (b.ist_umsatz||0) - (a.ist_umsatz||0));
 
+  document.getElementById('vl-ranking-title').textContent = `Filial-Ranking – ${monatLabel}`;
   document.getElementById('vl-ranking').innerHTML = `
     <thead><tr>
-      <th>#</th><th>Filiale</th><th>Ø Ist-Umsatz</th><th>Retoure</th><th>Ø Bon</th><th>Kunden</th><th>Std-Lstg.</th><th>Trend</th>
+      <th>#</th><th>Filiale</th><th>Ø Umsatz/Tag</th><th>Monatsziel</th><th>Retoure</th><th>Ø Bon</th><th>Trend</th>
     </tr></thead>
-    <tbody>${rankData.map((r,i) => `<tr>
-      <td><span class="rank-num ${i<3?'r'+(i+1):''}">${i+1}</span></td>
-      <td><strong>${r.name}</strong></td>
-      <td>${fmtEur(r.ist_umsatz)}</td>
-      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-      <td>${fmtEur(r.bon)}</td>
-      <td>${fmtN(r.kunden)}</td>
-      <td>${r.std_leistung_ist!=null ? (pillStunden(r.std_leistung_ist)+' '+fmtN(r.std_leistung_ist)) : '–'}</td>
-      <td>${trendArrow(allData[r.branch]||[])}</td>
-    </tr>`).join('')}</tbody>
+    <tbody>${rankData.map((r,i) => {
+      const barHtml = r.pct != null
+        ? `<div class="mini-bar-wrap"><div class="mini-bar-fill ${r.pct>=100?'erreicht':''}" style="width:${r.pct.toFixed(0)}%"></div></div><span class="mini-bar-label">${r.pct.toFixed(0)}%</span>`
+        : '<span class="mini-bar-label">–</span>';
+      return `<tr>
+        <td><span class="rank-num ${i<3?'r'+(i+1):''}">${i+1}</span></td>
+        <td><strong>${r.name}</strong></td>
+        <td>${fmtEur(r.ist_umsatz)}</td>
+        <td>${barHtml}</td>
+        <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+        <td>${fmtEur(r.bon)}</td>
+        <td>${trendArrow(allData[r.branch]||[])}</td>
+      </tr>`;
+    }).join('')}</tbody>
   `;
 
   // Bar chart
@@ -619,27 +622,47 @@ function renderVLUebersicht() {
     type: 'bar',
     data: {
       labels: rankData.map(r => r.name),
-      datasets: [{ label: 'Ø Ist-Umsatz', data: rankData.map(r => r.ist_umsatz||0), backgroundColor: rankData.map((_,i) => i===0?'#111':'#ccc'), borderRadius: 4 }]
+      datasets: [{ label: 'Ø Ist-Umsatz', data: rankData.map(r => r.ist_umsatz||0), backgroundColor: rankData.map(r => BRANCH_COLORS[r.branch]), borderRadius: 4 }]
     },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => v.toLocaleString('de-DE')+'€' } } } }
   });
 }
 
 function renderVLKarten() {
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
   document.getElementById('vl-karten-grid').innerHTML = BRANCHES.map(b => {
-    const rows = (allData[b]||[]).slice(-7);
+    const allRows = allData[b]||[];
+    const rows = allRows.filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
     const a = calcAvg(rows);
-    const last = rows[rows.length-1]||{};
+    const last = allRows[allRows.length-1]||{};
+    const lastDate = last._date ? last._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–';
+    const istKumuliert = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
+    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl!=null?r.soll_umsatz_fl:v, null);
+    const pct = sollFl ? Math.min((istKumuliert/sollFl)*100,100) : null;
+    const trend = trendArrow(allRows);
+    const color = BRANCH_COLORS[b];
     return `<div class="filial-card">
-      <h3>${BRANCH_NAMES[b]}</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0;border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</h3>
+        <span style="font-size:11px;color:#aaa">Letzter: ${lastDate}</span>
+      </div>
       <div class="fc-metrics">
-        <div class="fc-metric"><div class="label">Ø Umsatz</div><div class="val">${fmtEur(a.ist_umsatz)}</div></div>
+        <div class="fc-metric"><div class="label">Ø Umsatz/Tag</div><div class="val">${fmtEur(a.ist_umsatz)}</div></div>
         <div class="fc-metric"><div class="label">Retoure</div><div class="val">${fmtPct(a.retoure_pct)} ${pillRetoure(a.retoure_pct)}</div></div>
         <div class="fc-metric"><div class="label">Ø Bon</div><div class="val">${fmtEur(a.bon)}</div></div>
         <div class="fc-metric"><div class="label">Kunden/Tag</div><div class="val">${fmtN(a.kunden)}</div></div>
-        <div class="fc-metric"><div class="label">Std-Leistung</div><div class="val">${a.std_leistung_ist!=null?fmtN(a.std_leistung_ist):'–'} ${pillStunden(a.std_leistung_ist)}</div></div>
-        <div class="fc-metric"><div class="label">VK Std</div><div class="val">${a.vk_std_ist!=null?fmtN(a.vk_std_ist):'–'}</div></div>
       </div>
+      ${pct != null ? `<div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
+          <span>Monatsziel</span><span>${pct.toFixed(0)}%</span>
+        </div>
+        <div class="mini-bar-wrap" style="width:100%;display:block">
+          <div class="mini-bar-fill ${pct>=100?'erreicht':''}" style="width:${pct.toFixed(0)}%;background:${pct>=100?'#2e7d32':color}"></div>
+        </div>
+      </div>` : ''}
+      <div style="margin-top:10px;font-size:12px;color:#888">Trend: ${trend}</div>
     </div>`;
   }).join('');
 }
@@ -659,7 +682,7 @@ function renderVLMonat() {
     });
   });
   const monthKeys = Object.keys(months).sort().slice(-6);
-  const colors = ['#111','#555','#888','#aaa','#ccc','#e0e0e0','#666'];
+  const colors = BRANCHES.map(b => BRANCH_COLORS[b]);
 
   const ctx1 = document.getElementById('chart-monat').getContext('2d');
   if (chartsInstances['monat']) chartsInstances['monat'].destroy();
@@ -693,25 +716,37 @@ function renderVLMonat() {
 }
 
 function renderVLSollIst() {
-  // Alle Filialen, letzte 7 Tage je Zeile
-  const rows = [];
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
+  const monatLabel = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+  let html = '';
   BRANCHES.forEach(b => {
-    (allData[b]||[]).slice(-7).forEach(r => {
-      rows.push({ branch: BRANCH_NAMES[b], ...r });
-    });
+    const rows = (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+    if (!rows.length) return;
+    const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
+    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl!=null?r.soll_umsatz_fl:v, null);
+    const color = BRANCH_COLORS[b];
+    html += `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <strong style="font-size:13px;border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</strong>
+          <span style="font-size:12px;color:#888">${sollFl ? fmtEur(istGesamt)+' / '+fmtEur(sollFl) : fmtEur(istGesamt)}</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th></tr></thead>
+          <tbody>${[...rows].reverse().map(r => `<tr>
+            <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
+            <td>${fmtEur(r.soll_umsatz)}</td>
+            <td>${fmtEur(r.ist_umsatz)}</td>
+            <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
+            <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
   });
-  rows.sort((a,b) => (b._date||0) - (a._date||0));
-  document.getElementById('vl-soll-ist-table').innerHTML = `
-    <thead><tr><th>Filiale</th><th>Datum</th><th>Soll</th><th>Ist</th><th>Differenz</th><th>Retoure</th></tr></thead>
-    <tbody>${rows.map(r => `<tr>
-      <td>${r.branch}</td>
-      <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
-      <td>${fmtEur(r.soll_umsatz)}</td>
-      <td>${fmtEur(r.ist_umsatz)}</td>
-      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
-      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-    </tr>`).join('')}</tbody>
-  `;
+  document.getElementById('vl-soll-ist-table').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten</p>';
 }
 
 // ═══ VERWALTUNG ═══
