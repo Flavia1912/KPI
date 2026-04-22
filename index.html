@@ -79,6 +79,18 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
 .pin-table th{text-align:left;padding:8px 10px;background:#f5f5f3;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e0e0e0}
 .pin-table td{padding:9px 10px;border-bottom:1px solid #f0f0f0}
 .pin-val{font-family:monospace;font-size:14px;letter-spacing:2px;background:#f5f5f3;padding:2px 8px;border-radius:4px}
+/* ── AKKORDEON ── */
+.akkordeon-item{border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.akkordeon-header{display:flex;align-items:center;padding:14px 16px;cursor:pointer;background:#fff;gap:12px;-webkit-tap-highlight-color:transparent;user-select:none}
+.akkordeon-header:active{background:#fafafa}
+.akkordeon-chevron{font-size:11px;color:#aaa;transition:transform .2s;flex-shrink:0}
+.akkordeon-item.open .akkordeon-chevron{transform:rotate(90deg)}
+.akkordeon-body{display:none;border-top:1.5px solid #f0f0f0;overflow-x:auto}
+.akkordeon-item.open .akkordeon-body{display:block}
+.akkordeon-title{font-size:13px;font-weight:600;color:#111;flex:1}
+.akkordeon-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.akkordeon-betraege{font-size:11px;color:#888}
+.akkordeon-bar-row{display:flex;align-items:center;gap:6px}
 /* ── MINI FORTSCHRITTSBALKEN ── */
 .mini-bar-wrap{background:#f0f0f0;border-radius:4px;height:6px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
 .mini-bar-fill{height:100%;border-radius:4px;background:#111;transition:width .5s ease}
@@ -201,10 +213,6 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
       <div class="nav-tab" onclick="switchTab(this,'vl-soll-ist')">Soll/Ist alle</div>
     </div>
     <div id="vl-uebersicht" class="page active">
-      <div class="card">
-        <h2>Gesamtübersicht (Ø letzte 7 Tage)</h2>
-        <div class="kpi-grid" id="vl-gesamt"></div>
-      </div>
       <div class="card">
         <h2 id="vl-ranking-title">Filial-Ranking – lfd. Monat</h2>
         <div style="overflow-x:auto">
@@ -476,25 +484,25 @@ function renderPraemienBalken(rows) {
   // Kumulierter Ist-Umsatz des Monats
   const istKumuliert = monthRows.reduce((s, r) => s + (r.ist_umsatz || 0), 0);
 
-  // Soll-Umsatz fortlaufend: letzter verfügbarer Wert im Monat
-  const sollFl = monthRows.reduce((v, r) => r.soll_umsatz_fl != null ? r.soll_umsatz_fl : v, null);
+  // Monats-Soll = Summe aller täglichen Soll-Umsätze im Monat
+  const sollGesamt = monthRows.reduce((s, r) => s + (r.soll_umsatz || 0), 0);
 
   const monatLabel = refDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
   document.getElementById('fl-praemien-monat').textContent = monatLabel;
 
-  if (sollFl == null || sollFl === 0) {
+  if (sollGesamt === 0) {
     document.getElementById('fl-praemien-pct').textContent = 'Keine Solldaten';
     return;
   }
 
-  const pct = Math.min((istKumuliert / sollFl) * 100, 100);
-  const erreicht = istKumuliert >= sollFl;
+  const pct = Math.min((istKumuliert / sollGesamt) * 100, 100);
+  const erreicht = istKumuliert >= sollGesamt;
   const bar = document.getElementById('fl-praemien-bar');
   bar.style.width = pct.toFixed(1) + '%';
   bar.className = 'praemien-bar-fill' + (erreicht ? ' erreicht' : '');
 
   document.getElementById('fl-praemien-pct').textContent = pct.toFixed(1) + '% erreicht';
-  document.getElementById('fl-praemien-betraege').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollFl);
+  document.getElementById('fl-praemien-betraege').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollGesamt);
 
   const badge = document.getElementById('fl-praemien-badge');
   badge.style.display = erreicht ? 'inline-flex' : 'none';
@@ -531,7 +539,7 @@ function renderFL() {
   document.getElementById('fl-table').innerHTML = `
     <thead><tr>
       <th>Datum</th><th>Wochentag</th><th>Soll</th><th>Ist</th><th>Diff</th>
-      <th>Retoure</th><th>Bon</th><th>Kunden</th><th>Std-Lstg</th>
+      <th>Retoure</th><th>Bon</th><th>Kunden</th>
     </tr></thead>
     <tbody>${tableRows.map(r => `<tr>
       <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
@@ -542,7 +550,6 @@ function renderFL() {
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
       <td>${fmtEur(r.bon)}</td>
       <td>${fmtN(r.kunden)}</td>
-      <td>${pillStunden(r.std_leistung_ist)} ${fmtN(r.std_leistung_ist)}</td>
     </tr>`).join('')}</tbody>
   `;
 }
@@ -562,35 +569,13 @@ function renderVLUebersicht() {
   const currentMonthRows = b => (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
   const monatLabel = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
 
-  // Gesamt-KPIs
-  let totalUmsatz=0, retourePcts=[], bons=[], kunden=0, dayCount=0;
-  BRANCHES.forEach(b => {
-    const rows = currentMonthRows(b);
-    dayCount = Math.max(dayCount, rows.length);
-    rows.forEach(r => {
-      totalUmsatz += r.ist_umsatz||0;
-      if (r.retoure_pct != null) retourePcts.push(r.retoure_pct);
-      if (r.bon != null && r.bon > 0) bons.push(r.bon);
-      kunden += r.kunden||0;
-    });
-  });
-  const avgRetoure = avg(retourePcts);
-  const avgBon = avg(bons);
-  const avgKunden = dayCount > 0 ? kunden / (BRANCHES.length * dayCount) : 0;
-  document.getElementById('vl-gesamt').innerHTML = `
-    ${kpiBox('Ø Tagesumsatz', fmtEur(dayCount > 0 ? totalUmsatz / (BRANCHES.length * dayCount) : 0))}
-    ${kpiBox('Ø Retourenquote', fmtPct(avgRetoure), pillRetoure(avgRetoure))}
-    ${kpiBox('Ø Kundenbon', fmtEur(avgBon))}
-    ${kpiBox('Kunden / Tag', fmtN(Math.round(avgKunden)))}
-  `;
-
   // Ranking mit Monatsziel-Balken
   const rankData = BRANCHES.map(b => {
     const rows = currentMonthRows(b);
     const a = calcAvg(rows);
     const istKumuliert = rows.reduce((s,r) => s + (r.ist_umsatz||0), 0);
-    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl != null ? r.soll_umsatz_fl : v, null);
-    const pct = sollFl ? Math.min((istKumuliert / sollFl) * 100, 100) : null;
+    const sollGesamt = rows.reduce((s,r) => s + (r.soll_umsatz||0), 0);
+    const pct = sollGesamt > 0 ? Math.min((istKumuliert / sollGesamt) * 100, 100) : null;
     return { branch: b, name: BRANCH_NAMES[b], ...a, istKumuliert, sollFl, pct };
   }).sort((a,b) => (b.ist_umsatz||0) - (a.ist_umsatz||0));
 
@@ -639,8 +624,8 @@ function renderVLKarten() {
     const last = allRows[allRows.length-1]||{};
     const lastDate = last._date ? last._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–';
     const istKumuliert = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
-    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl!=null?r.soll_umsatz_fl:v, null);
-    const pct = sollFl ? Math.min((istKumuliert/sollFl)*100,100) : null;
+    const sollGesamt = rows.reduce((s,r) => s+(r.soll_umsatz||0),0);
+    const pct = sollGesamt > 0 ? Math.min((istKumuliert/sollGesamt)*100,100) : null;
     const trend = trendArrow(allRows);
     const color = BRANCH_COLORS[b];
     return `<div class="filial-card">
@@ -726,27 +711,55 @@ function renderVLSollIst() {
     const rows = (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
     if (!rows.length) return;
     const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
-    const sollFl = rows.reduce((v,r) => r.soll_umsatz_fl!=null?r.soll_umsatz_fl:v, null);
+    const sollGesamt = rows.reduce((s,r) => s+(r.soll_umsatz||0),0);
+    const pct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100,100) : null;
+    const erreicht = pct != null && istGesamt >= sollGesamt;
     const color = BRANCH_COLORS[b];
-    html += `
-      <div style="margin-bottom:20px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <strong style="font-size:13px;border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</strong>
-          <span style="font-size:12px;color:#888">${sollFl ? fmtEur(istGesamt)+' / '+fmtEur(sollFl) : fmtEur(istGesamt)}</span>
+    const avgRetoure = avg(rows.map(r=>r.retoure_pct).filter(v=>v!=null));
+
+    // Ampelfarbe für Retoure-Pill
+    const retPill = pillRetoure(avgRetoure);
+
+    const barHtml = pct != null ? `
+      <div class="akkordeon-bar-row">
+        <div class="mini-bar-wrap" style="width:70px">
+          <div class="mini-bar-fill ${erreicht?'erreicht':''}" style="width:${pct.toFixed(0)}%;background:${erreicht?'#2e7d32':color}"></div>
         </div>
-        <table class="data-table">
-          <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th></tr></thead>
-          <tbody>${[...rows].reverse().map(r => `<tr>
-            <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
-            <td>${fmtEur(r.soll_umsatz)}</td>
-            <td>${fmtEur(r.ist_umsatz)}</td>
-            <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
-            <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-          </tr>`).join('')}</tbody>
-        </table>
+        <span class="mini-bar-label" style="font-weight:600;color:${erreicht?'#2e7d32':'#111'}">${pct.toFixed(0)}%</span>
+      </div>` : '';
+
+    const tagesRows = [...rows].reverse().map(r => `<tr>
+      <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
+      <td>${fmtEur(r.soll_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
+      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
+      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+    </tr>`).join('');
+
+    html += `
+      <div class="akkordeon-item">
+        <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)">
+          <span class="akkordeon-chevron">▶</span>
+          <span class="akkordeon-title" style="border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</span>
+          <div class="akkordeon-meta">
+            ${barHtml}
+            <span class="akkordeon-betraege">${fmtEur(istGesamt)} / ${fmtEur(sollGesamt)}</span>
+          </div>
+        </div>
+        <div class="akkordeon-body">
+          <table class="data-table">
+            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th></tr></thead>
+            <tbody>${tagesRows}</tbody>
+          </table>
+        </div>
       </div>`;
   });
+
   document.getElementById('vl-soll-ist-table').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten</p>';
+}
+
+function toggleAkkordeon(el) {
+  el.classList.toggle('open');
 }
 
 // ═══ VERWALTUNG ═══
