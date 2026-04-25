@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bäcker Bock – Filial-Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+/* ── TOPBAR ── */
+#topbar{background:#111;color:#fff;height:52px;display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100}
+#topbar .logo{font-family:'Playfair Display',serif;font-size:17px;letter-spacing:.5px;white-space:nowrap}
+#topbar .sep{width:1px;height:20px;background:#444;flex-shrink:0}
+#topbar .role-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#topbar .spacer{flex:1;min-width:0}
+#topbar button{background:transparent;border:1.5px solid #444;color:#ccc;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Inter',sans-serif;white-space:nowrap;flex-shrink:0}
+#topbar button:hover{border-color:#888;color:#fff}
+#topbar .status-wrap{display:flex;align-items:center;gap:4px;flex-shrink:0}
+#status-dot{width:8px;height:8px;border-radius:50%;background:#888;display:inline-block}
+#status-text{font-size:11px;color:#888;display:none}
+#status-dot.live{background:#4caf50}
+/* ── LOGIN ── */
+#loginSection{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f3;padding:16px}
+.login-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:36px 28px;width:100%;max-width:340px;text-align:center}
+.login-card h1{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:6px}
+.login-card p{color:#777;font-size:13px;margin-bottom:24px}
+.pin-dots span{display:inline-block;width:14px;height:14px;border-radius:50%;background:#ddd;margin:0 5px;transition:background .15s}
+.pin-dots span.filled{background:#111}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}
+.numpad button{background:#fff;border:1.5px solid #e0e0e0;border-radius:10px;height:64px;font-size:22px;cursor:pointer;font-family:'Inter',sans-serif;transition:background .1s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.numpad button:active{background:#111;color:#fff;border-color:#111}
+.login-err{color:#c0392b;font-size:13px;margin-top:14px;min-height:18px}
+/* ── MAIN ── */
+#app{display:none}
+.nav-tabs{background:#fff;border-bottom:1.5px solid #e0e0e0;padding:0 16px;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-tab{padding:14px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2.5px solid transparent;color:#777;transition:all .15s;white-space:nowrap}
+.nav-tab.active{color:#111;border-bottom-color:#111}
+/* ── CARDS ── */
+.card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:14px}
+.card h2{font-size:13px;font-weight:600;margin-bottom:14px;color:#111}
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-box{background:#fff;border:1.5px solid #e0e0e0;border-radius:6px;padding:14px}
+.kpi-box .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:4px}
+.kpi-box .val{font-family:'Playfair Display',serif;font-size:22px;color:#111}
+.kpi-box .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px}
+.pill-green{background:#e8f5e9;color:#2e7d32}
+.pill-yellow{background:#fff8e1;color:#f57f17}
+.pill-red{background:#ffebee;color:#c62828}
+/* ── TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;padding:7px 8px;background:#f5f5f3;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:#888;border-bottom:1.5px solid #e0e0e0}
+.data-table td{padding:8px 8px;border-bottom:1px solid #f0f0f0;color:#333}
+.data-table tr:active td{background:#fafafa}
+/* ── RANKING ── */
+.rank-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:12px;font-weight:600;background:#f0f0f0;color:#555}
+.rank-num.r1{background:#ffd700;color:#333}
+.rank-num.r2{background:#c0c0c0;color:#333}
+.rank-num.r3{background:#cd7f32;color:#fff}
+/* ── FILIAL CARDS VL ── */
+.filial-cards{display:grid;grid-template-columns:1fr;gap:12px}
+.filial-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px}
+.filial-card h3{font-size:14px;font-weight:600;margin-bottom:12px;color:#111}
+.fc-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fc-metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#888;margin-bottom:2px}
+.fc-metric .val{font-family:'Playfair Display',serif;font-size:18px;color:#111}
+/* ── CHART ── */
+.chart-wrap{position:relative;height:220px}
+/* ── LETZTER EINTRAG HERO ── */
+.hero-date{font-size:12px;color:#888;margin-bottom:14px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero-item{background:#f9f9f8;border-radius:6px;padding:12px}
+.hero-item .label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:4px}
+.hero-item .val{font-family:'Playfair Display',serif;font-size:24px;color:#111;line-height:1}
+/* ── VERWALTUNG ── */
+.pin-table{width:100%;border-collapse:collapse;font-size:13px}
+.pin-table th{text-align:left;padding:8px 10px;background:#f5f5f3;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e0e0e0}
+.pin-table td{padding:9px 10px;border-bottom:1px solid #f0f0f0}
+.pin-val{font-family:monospace;font-size:14px;letter-spacing:2px;background:#f5f5f3;padding:2px 8px;border-radius:4px}
+/* ── AKKORDEON ── */
+.akkordeon-item{border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:10px;overflow:hidden}
+/* ── HISTORIE ── */
+.historie-karte{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px}
+.historie-monat{font-size:14px;font-weight:600;color:#111;margin-bottom:10px}
+.historie-zeile{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:12px}
+.historie-label{color:#888}
+.historie-wert{font-weight:600;color:#111}
+.praemie-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.praemie-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.praemie-ok{background:#e8f5e9;color:#2e7d32}
+.praemie-nein{background:#ffebee;color:#c62828}
+.praemie-offen{background:#f5f5f3;color:#999}
+.akkordeon-header{display:flex;align-items:center;padding:14px 16px;cursor:pointer;background:#fff;gap:12px;-webkit-tap-highlight-color:transparent;user-select:none}
+.akkordeon-header:active{background:#fafafa}
+.akkordeon-chevron{font-size:11px;color:#aaa;transition:transform .2s;flex-shrink:0}
+.akkordeon-item.open .akkordeon-chevron{transform:rotate(90deg)}
+.akkordeon-body{display:none;border-top:1.5px solid #f0f0f0;overflow-x:auto}
+.akkordeon-item.open .akkordeon-body{display:block}
+.akkordeon-title{font-size:13px;font-weight:600;color:#111;flex:1}
+.akkordeon-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.akkordeon-betraege{font-size:11px;color:#888}
+.akkordeon-bar-row{display:flex;align-items:center;gap:6px}
+/* ── MINI FORTSCHRITTSBALKEN ── */
+.mini-bar-wrap{background:#f0f0f0;border-radius:4px;height:6px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.mini-bar-fill{height:100%;border-radius:4px;background:#111;transition:width .5s ease}
+.mini-bar-fill.erreicht{background:#2e7d32}
+.mini-bar-label{font-size:11px;color:#888;margin-left:4px}
+/* ── FILIAL FARBEN ── */
+/* ── MONATSZIEL ── */
+.praemien-card{background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:14px}
+.praemien-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.praemien-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#888}
+.praemien-bar-wrap{background:#f0f0f0;border-radius:6px;height:20px;overflow:hidden}
+.praemien-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;background:#111;min-width:2px}
+.praemien-bar-fill.erreicht{background:#2e7d32}
+.praemien-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:4px}
+.praemien-pct{font-size:14px;font-weight:600;color:#111}
+.praemien-badge{display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;font-size:13px;font-weight:600;padding:5px 12px;border-radius:20px}
+/* ── PAGE PADDING ── */
+.page{display:none;padding:14px}
+.page.active{display:block}
+/* ── DESKTOP OVERRIDES ── */
+@media(min-width:600px){
+  #status-text{display:inline}
+  .page{padding:24px}
+  .card{padding:24px;margin-bottom:20px}
+  .praemien-card{padding:24px;margin-bottom:20px}
+  .kpi-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .kpi-box .val{font-size:26px}
+  .hero-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .hero-item{background:transparent;padding:0}
+  .hero-item .val{font-size:28px}
+  .filial-cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .numpad button{height:52px}
+  .data-table{font-size:13px}
+  .data-table th{font-size:11px;padding:8px 12px}
+  .data-table td{padding:9px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="loginSection">
+  <div class="login-card">
+    <h1>Bäcker Bock</h1>
+    <p>Filial-Dashboard · PIN eingeben</p>
+    <div class="pin-dots" id="pinDots">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="numpad">
+      <button onclick="pinKey('1')">1</button>
+      <button onclick="pinKey('2')">2</button>
+      <button onclick="pinKey('3')">3</button>
+      <button onclick="pinKey('4')">4</button>
+      <button onclick="pinKey('5')">5</button>
+      <button onclick="pinKey('6')">6</button>
+      <button onclick="pinKey('7')">7</button>
+      <button onclick="pinKey('8')">8</button>
+      <button onclick="pinKey('9')">9</button>
+      <button onclick="pinKey('del')" style="font-size:14px">⌫</button>
+      <button onclick="pinKey('0')">0</button>
+      <button onclick="pinKey('ok')" style="font-size:14px;background:#111;color:#fff;border-color:#111">✓</button>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TOPBAR ══════════════ -->
+<div id="topbar" style="display:none">
+  <span class="logo">Bäcker Bock</span>
+  <span class="sep"></span>
+  <span class="role-label" id="topRoleLabel">Filial-Dashboard</span>
+  <span class="spacer"></span>
+  <span id="status-dot"></span><span id="status-text">–</span>
+  <button onclick="doRefresh()" style="margin-left:12px">↺ Aktualisieren</button>
+  <button onclick="doLogout()" style="margin-left:8px">Abmelden</button>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+
+  <!-- FILIALLEITUNG VIEW -->
+  <div id="view-fl">
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchTab(this,'fl-uebersicht')">Übersicht</div>
+      <div class="nav-tab" onclick="switchTab(this,'fl-historie')">Historie</div>
+    </div>
+    <div id="fl-uebersicht" class="page active">
+      <div class="praemien-card" id="fl-praemien-card">
+        <div class="praemien-header">
+          <span class="praemien-title">Monatsziel</span>
+          <span id="fl-praemien-monat" style="font-size:12px;color:#aaa"></span>
+        </div>
+        <div class="praemien-bar-wrap" style="margin-top:10px">
+          <div class="praemien-bar-fill" id="fl-praemien-bar" style="width:0%"></div>
+        </div>
+        <div class="praemien-footer">
+          <span class="praemien-pct" id="fl-praemien-pct"></span>
+          <span class="praemien-ziel" id="fl-praemien-betraege" style="font-size:13px;color:#888"></span>
+          <div id="fl-praemien-badge" style="display:none" class="praemien-badge">🎉 Ziel erreicht!</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hero-date" id="fl-hero-date"></div>
+        <div class="hero-grid" id="fl-hero"></div>
+      </div>
+      <div class="card">
+        <h2 id="fl-table-title">Einträge April 2026</h2>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="fl-table"></table>
+        </div>
+      </div>
+    </div>
+    <div id="fl-historie" class="page">
+      <div id="fl-historie-inhalt">
+        <p style="color:#888;font-size:13px">Lädt…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERKAUFSLEITER VIEW -->
+  <div id="view-vl" style="display:none">
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchTab(this,'vl-uebersicht')">Übersicht</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-karten')">Filial-Karten</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-monatsvergleich')">Monatsvergleich</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-soll-ist')">Soll/Ist alle</div>
+    </div>
+    <div id="vl-uebersicht" class="page active">
+      <div class="card">
+        <h2 id="vl-ranking-title">Filial-Ranking – lfd. Monat</h2>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="vl-ranking"></table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Ø Tagesumsatz nach Filiale</h2>
+        <div class="chart-wrap" style="height:280px"><canvas id="chart-ranking-bar"></canvas></div>
+      </div>
+    </div>
+    <div id="vl-karten" class="page">
+      <div class="filial-cards" id="vl-karten-grid"></div>
+    </div>
+    <div id="vl-monatsvergleich" class="page">
+      <div class="card">
+        <h2>Monatlicher Umsatz je Filiale</h2>
+        <div class="chart-wrap" style="height:300px"><canvas id="chart-monat"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Retourenquote Trend</h2>
+        <div class="chart-wrap" style="height:280px"><canvas id="chart-retoure-trend"></canvas></div>
+      </div>
+    </div>
+    <div id="vl-soll-ist" class="page">
+      <div class="card">
+        <h2 id="vl-sollIst-title">Soll vs. Ist – lfd. Monat</h2>
+        <div id="vl-soll-ist-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERWALTUNG VIEW -->
+  <div id="view-vw" style="display:none">
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchTab(this,'vw-dashboard')">Dashboard</div>
+      <div class="nav-tab" onclick="switchTab(this,'vw-zugaenge')">Zugänge & PINs</div>
+    </div>
+    <div id="vw-dashboard" class="page active">
+      <div class="card">
+        <h2>Gesamtübersicht (Ø letzte 7 Tage)</h2>
+        <div class="kpi-grid" id="vw-gesamt"></div>
+      </div>
+      <div class="card">
+        <h2>Filial-Ranking (Ø 7 Tage)</h2>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="vw-ranking"></table>
+        </div>
+      </div>
+    </div>
+    <div id="vw-zugaenge" class="page">
+      <div class="card">
+        <h2>PIN-Übersicht</h2>
+        <table class="pin-table" id="pin-table-el"></table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════
+// ── PINs hier ändern ─────────────────────────
+const PINS = {
+  '1234': { role: 'fl', branch: 'B1', name: 'Brandstraße' },
+  '2345': { role: 'fl', branch: 'B5', name: 'Oberer Markt' },
+  '3456': { role: 'fl', branch: 'B7', name: 'Norisstraße' },
+  '4567': { role: 'fl', branch: 'B8', name: 'Knebelstraße' },
+  '5741': { role: 'fl', branch: 'B11', name: 'Waldluststraße' },
+  '6789': { role: 'fl', branch: 'B12', name: 'Laufamholzstraße' },
+  '7890': { role: 'fl', branch: 'B16', name: 'Vogelherdstraße' },
+  '4444': { role: 'vw', branch: null, name: 'Verwaltung' },
+  '9999': { role: 'vl', branch: null, name: 'Verkaufsleiter' },
+};
+// ─────────────────────────────────────────────
+
+const SHEET_ID = '1gfZeQ74PLWAsHrTbF1SvX8Q6Lwa5WoYxkjbsMPiDhFQ';
+const BRANCHES = ['B1','B5','B7','B8','B11','B12','B16'];
+const BRANCH_NAMES = { B1:'Brandstraße', B5:'Oberer Markt', B7:'Norisstraße', B8:'Knebelstraße', B11:'Waldluststraße', B12:'Laufamholzstraße', B16:'Vogelherdstraße' };
+
+const BRANCH_COLORS = {
+  B1: '#1a1a2e', B5: '#16213e', B7: '#0f3460',
+  B8: '#533483', B11: '#2b6cb0', B12: '#2c7a7b', B16: '#276749'
+};
+let allData = {};
+let allMonatsSoll = {};
+let chartsInstances = {};
+
+// ── Spalten-Normalisierung ──
+// Exakte Labels aus gviz (mit Zeilenumbrüchen) → interne Keys
+const COL_MAP = {
+  'datum':                  'datum',
+  'wochentag':              'wochentag',
+  'soll\n  umsatz':         'soll_umsatz',
+  'soll-umsatz fortlaufend':'soll_umsatz_fl',
+  'ist\n  umsatz':          'ist_umsatz',
+  // Differenz gibt es mehrfach – wird per Index behandelt
+  'retoure':                'retoure',
+  'retoure ist\n  in %':    'retoure_pct',
+  'kunden':                 'kunden',
+  'durch-\n schnitts-\n bon':'bon',
+  'vk std\n  soll':         'vk_std_soll',
+  'vk - std\n ist':         'vk_std_ist',
+  'std - leistung\n soll':  'std_leistung_soll',
+  'std - leistung\n ist':   'std_leistung_ist',
+};
+
+function normalizeColLabel(label) {
+  if (!label) return '';
+  // lowercase + collapse whitespace types but keep newlines for matching
+  return label.toLowerCase().trim();
+}
+
+function mapCols(colLabels) {
+  // Returns array of internal keys aligned to column indices
+  // Handle duplicate "Differenz" cols by position
+  let diffCount = 0;
+  return colLabels.map(label => {
+    const norm = normalizeColLabel(label);
+    if (norm === 'differenz') {
+      diffCount++;
+      if (diffCount === 1) return 'diff_umsatz';
+      if (diffCount === 2) return 'diff_stunden';
+      return 'diff_leistung';
+    }
+    return COL_MAP[norm] || norm || null;
+  });
+}
+
+// ── LOGIN ──
+let pinBuffer = '';
+function pinKey(k) {
+  if (k === 'del') { pinBuffer = pinBuffer.slice(0,-1); }
+  else if (k === 'ok') { doLogin(); return; }
+  else if (pinBuffer.length < 4) { pinBuffer += k; }
+  if (pinBuffer.length === 4) { setTimeout(doLogin, 100); }
+  updatePinDots();
+}
+function updatePinDots() {
+  document.querySelectorAll('#pinDots span').forEach((s,i) => {
+    s.classList.toggle('filled', i < pinBuffer.length);
+  });
+}
+function doLogin() {
+  const user = PINS[pinBuffer];
+  if (!user) {
+    document.getElementById('loginErr').textContent = 'Falscher PIN';
+    pinBuffer = ''; updatePinDots(); return;
+  }
+  currentUser = user;
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('topRoleLabel').textContent =
+    user.role === 'fl' ? `Filiale ${user.name}` :
+    user.role === 'vl' ? 'Verkaufsleiter' : 'Verwaltung';
+  // Show correct view
+  document.getElementById('view-fl').style.display = user.role === 'fl' ? 'block' : 'none';
+  document.getElementById('view-vl').style.display = user.role === 'vl' ? 'block' : 'none';
+  document.getElementById('view-vw').style.display = user.role === 'vw' ? 'block' : 'none';
+  loadData();
+}
+function doLogout() {
+  currentUser = null; pinBuffer = '';
+  document.getElementById('loginSection').style.display = 'flex';
+  document.getElementById('topbar').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+  updatePinDots();
+}
+document.addEventListener('keydown', e => {
+  if (document.getElementById('loginSection').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+  else if (e.key === 'Backspace') pinKey('del');
+  else if (e.key === 'Enter') pinKey('ok');
+});
+
+function doRefresh() { loadData(); }
+
+// ── TABS ──
+function switchTab(el, pageId) {
+  const parent = el.closest('.nav-tabs');
+  parent.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const view = el.closest('[id^="view-"]') || document.getElementById('app');
+  view.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+}
+
+// ── DATA LOADING ──
+async function loadData() {
+  setStatus('loading');
+  const branches = currentUser.role === 'fl' ? [currentUser.branch] : BRANCHES;
+  const promises = branches.map(b => fetchBranch(b));
+  const results = await Promise.allSettled(promises);
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      allData[branches[i]] = r.value.rows;
+      allMonatsSoll[branches[i]] = r.value.monatsSoll;
+    }
+  });
+  setStatus('live');
+  renderAll();
+}
+
+async function fetchBranch(branch) {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${branch}`;
+    const resp = await fetch(url);
+    const text = await resp.text();
+    const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
+    const colKeys = mapCols(json.table.cols.map(c => c.label));
+    const rows = [];
+    const monatsSoll = {};
+    for (const row of json.table.rows) {
+      if (!row.c || !row.c[0] || !row.c[0].v) continue;
+      const obj = {};
+      colKeys.forEach((key, i) => {
+        if (!key) return;
+        const cell = row.c[i];
+        obj[key] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : null) : null;
+      });
+      // Datum parsen
+      if (obj.datum && typeof obj.datum === 'string' && obj.datum.startsWith('Date(')) {
+        const parts = obj.datum.slice(5,-1).split(',').map(Number);
+        obj._date = new Date(parts[0], parts[1], parts[2]);
+      } else if (obj.datum) {
+        obj._date = new Date(obj.datum);
+      }
+      // Monatssoll aus ALLEN Zeilen mit Soll-Umsatz (auch ohne Ist)
+      if (obj.soll_umsatz && obj._date) {
+        const key = `${obj._date.getFullYear()}-${obj._date.getMonth()}`;
+        monatsSoll[key] = (monatsSoll[key] || 0) + obj.soll_umsatz;
+      }
+      // Nur Zeilen mit Ist-Umsatz für Anzeige
+      if (!obj.ist_umsatz) continue;
+      // Retoure normalisieren
+      if (obj.retoure_pct !== null && obj.retoure_pct < 2) {
+        obj.retoure_pct = obj.retoure_pct * 100;
+      }
+      // Differenz selbst berechnen
+      if (obj.ist_umsatz != null && obj.soll_umsatz != null) {
+        obj.diff_umsatz = obj.ist_umsatz - obj.soll_umsatz;
+      }
+      rows.push(obj);
+    }
+    rows.sort((a,b) => (a._date||0) - (b._date||0));
+    return { rows: rows.slice(-60), monatsSoll };
+  } catch(e) {
+    console.warn(`Fehler beim Laden von ${branch}:`, e);
+    return { rows: [], monatsSoll: {} };
+  }
+}
+
+function setStatus(state) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  if (state === 'loading') { dot.className=''; txt.textContent='Lädt…'; }
+  else if (state === 'live') { dot.className='live'; txt.textContent='Live (Google Sheets)'; }
+  else { dot.className=''; txt.textContent='Fehler'; }
+}
+
+// ── RENDER ──
+function renderAll() {
+  if (currentUser.role === 'fl') renderFL();
+  else if (currentUser.role === 'vl') renderVL();
+  else if (currentUser.role === 'vw') renderVW();
+}
+
+// Monatssoll aus allMonatsSoll holen
+function getSollGesamt(branch, year, month) {
+  return (allMonatsSoll[branch] || {})[`${year}-${month}`] || 0;
+}
+
+// ═══ PRÄMIEN-BALKEN ═══
+function renderPraemienBalken(rows) {
+  if (!rows.length) return;
+  const last = rows[rows.length - 1];
+  const refDate = last._date || new Date();
+  const refYear = refDate.getFullYear();
+  const refMonth = refDate.getMonth();
+  const monthRows = rows.filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+  const istKumuliert = monthRows.reduce((s,r) => s+(r.ist_umsatz||0), 0);
+  const sollGesamt = getSollGesamt(currentUser.branch, refYear, refMonth);
+  const monatLabel = refDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  document.getElementById('fl-praemien-monat').textContent = monatLabel;
+  if (sollGesamt === 0) {
+    document.getElementById('fl-praemien-pct').textContent = 'Keine Solldaten';
+    return;
+  }
+  const pct = Math.min((istKumuliert / sollGesamt) * 100, 100);
+  const erreicht = istKumuliert >= sollGesamt;
+  const bar = document.getElementById('fl-praemien-bar');
+  bar.style.width = pct.toFixed(1) + '%';
+  bar.className = 'praemien-bar-fill' + (erreicht ? ' erreicht' : '');
+  document.getElementById('fl-praemien-pct').textContent = pct.toFixed(1) + '% erreicht';
+  document.getElementById('fl-praemien-betraege').textContent = fmtEur(istKumuliert) + ' von ' + fmtEur(sollGesamt);
+  const badge = document.getElementById('fl-praemien-badge');
+  badge.style.display = erreicht ? 'inline-flex' : 'none';
+}
+
+// ═══ FILIALLEITUNG ═══
+function renderFL() {
+  const rows = allData[currentUser.branch] || [];
+  if (!rows.length) return;
+  const last = rows[rows.length - 1];
+
+  // Prämien-Balken
+  renderPraemienBalken(rows);
+
+  // Hero – letzter Eintrag
+  const heroDate = last._date ? last._date.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}) : '–';
+  document.getElementById('fl-hero-date').textContent = 'Letzter Eintrag: ' + heroDate;
+  document.getElementById('fl-hero').innerHTML = `
+    ${heroBox('Ist-Umsatz', fmtEur(last.ist_umsatz))}
+    ${heroBox('Retoure', fmtPct(last.retoure_pct), pillRetoure(last.retoure_pct))}
+    ${heroBox('Ø Bon', fmtEur(last.bon))}
+    ${heroBox('Kunden', fmtN(last.kunden))}
+  `;
+
+  // Tabelle: alle Einträge des aktuellen Monats
+  const refDate = last._date || new Date();
+  const refYear = refDate.getFullYear();
+  const refMonth = refDate.getMonth();
+  const monthRows = rows.filter(r => r._date && r._date.getFullYear() === refYear && r._date.getMonth() === refMonth);
+  const monatName = refDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  document.getElementById('fl-table-title').textContent = 'Einträge ' + monatName;
+  const tableRows = [...monthRows].reverse();
+  document.getElementById('fl-table').innerHTML = `
+    <thead><tr>
+      <th>Datum</th><th>Wochentag</th><th>Soll</th><th>Ist</th><th>Diff</th>
+      <th>Retoure</th><th>Bon</th><th>Kunden</th>
+    </tr></thead>
+    <tbody>${tableRows.map(r => `<tr>
+      <td>${r._date ? r._date.toLocaleDateString('de-DE') : '–'}</td>
+      <td>${r.wochentag||'–'}</td>
+      <td>${fmtEur(r.soll_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
+      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
+      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+      <td>${fmtEur(r.bon)}</td>
+      <td>${fmtN(r.kunden)}</td>
+    </tr>`).join('')}</tbody>
+  `;
+
+  // Historie
+  renderHistorie(rows);
+}
+
+// ═══ HISTORIE ═══
+function renderHistorie(rows) {
+  const branch = currentUser.branch;
+  const now = new Date();
+  const aktuellerMonat = now.getMonth();
+  const aktuellesJahr = now.getFullYear();
+
+  // Alle Monate aus den Daten ermitteln (außer laufendem Monat)
+  const monateMap = {};
+  rows.forEach(r => {
+    if (!r._date) return;
+    const y = r._date.getFullYear();
+    const m = r._date.getMonth();
+    // Laufenden Monat überspringen
+    if (y === aktuellesJahr && m === aktuellerMonat) return;
+    const key = `${y}-${m}`;
+    if (!monateMap[key]) monateMap[key] = { year: y, month: m, rows: [] };
+    monateMap[key].rows.push(r);
+  });
+
+  const monate = Object.values(monateMap).sort((a,b) => {
+    if (b.year !== a.year) return b.year - a.year;
+    return b.month - a.month;
+  });
+
+  if (!monate.length) {
+    document.getElementById('fl-historie-inhalt').innerHTML =
+      '<p style="color:#888;font-size:13px;padding:8px 0">Noch keine abgeschlossenen Monate vorhanden.</p>';
+    return;
+  }
+
+  // Alle Bon-Werte aus allen Monaten für die Bonziel-Berechnung sammeln
+  const allBons = rows.map(r => r.bon).filter(v => v != null && v > 0);
+  const avgBonGesamt = allBons.length ? allBons.reduce((a,b)=>a+b,0)/allBons.length : null;
+
+  const html = monate.map(({ year, month, rows: mRows }) => {
+    const monatLabel = new Date(year, month, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+    // Umsatz
+    const istGesamt = mRows.reduce((s,r) => s+(r.ist_umsatz||0), 0);
+    const sollGesamt = getSollGesamt(branch, year, month);
+    const umsatzPct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100, 100) : null;
+    const umsatzErreicht = sollGesamt > 0 && istGesamt >= sollGesamt;
+
+    // Ø Bon dieses Monats
+    const bonsMonat = mRows.map(r=>r.bon).filter(v=>v!=null&&v>0);
+    const avgBonMonat = bonsMonat.length ? bonsMonat.reduce((a,b)=>a+b,0)/bonsMonat.length : null;
+
+    // Bon-Ziel: Ø aller anderen Monate (ohne diesen) + 3%
+    const bonsAndere = rows.filter(r => {
+      if (!r._date) return false;
+      return !(r._date.getFullYear()===year && r._date.getMonth()===month);
+    }).map(r=>r.bon).filter(v=>v!=null&&v>0);
+    const avgBonBasis = bonsAndere.length ? bonsAndere.reduce((a,b)=>a+b,0)/bonsAndere.length : null;
+    const bonZiel = avgBonBasis ? avgBonBasis * 1.03 : null;
+    const bonErreicht = bonZiel != null && avgBonMonat != null && avgBonMonat >= bonZiel;
+
+    // Prämie gesamt
+    const praemieErreicht = umsatzErreicht && bonErreicht;
+    const praemieOffen = sollGesamt === 0 || bonZiel == null;
+
+    // Umsatz-Balken
+    const barHtml = umsatzPct != null ? `
+      <div style="background:#f0f0f0;border-radius:4px;height:8px;overflow:hidden;margin:6px 0">
+        <div style="height:100%;border-radius:4px;width:${umsatzPct.toFixed(0)}%;background:${umsatzErreicht?'#2e7d32':'#111'};transition:width .5s"></div>
+      </div>` : '';
+
+    return `<div class="historie-karte">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="historie-monat">${monatLabel}</div>
+        ${praemieOffen ? '' : `<span class="praemie-badge ${praemieErreicht?'praemie-ok':'praemie-nein'}">${praemieErreicht?'🎉 Prämie':'✗ Keine Prämie'}</span>`}
+      </div>
+      <div class="historie-zeile">
+        <span class="historie-label">Umsatz</span>
+        <span class="historie-wert" style="color:${umsatzErreicht?'#2e7d32':'#c62828'}">${fmtEur(istGesamt)} / ${sollGesamt>0?fmtEur(sollGesamt):'–'} ${umsatzPct!=null?'('+umsatzPct.toFixed(0)+'%)':''}</span>
+      </div>
+      ${barHtml}
+      <div class="historie-zeile" style="margin-top:4px">
+        <span class="historie-label">Ø Kundenbon</span>
+        <span class="historie-wert" style="color:${bonErreicht?'#2e7d32':(bonZiel&&avgBonMonat?'#c62828':'#888')}">${avgBonMonat!=null?fmtEur(avgBonMonat):'–'}</span>
+      </div>
+      <div class="historie-zeile">
+        <span class="historie-label">Bon-Ziel (+3%)</span>
+        <span style="font-size:12px;color:#888">${bonZiel!=null?fmtEur(bonZiel):'–'}</span>
+      </div>
+      <div class="praemie-badges">
+        <span class="praemie-badge ${umsatzErreicht?'praemie-ok':'praemie-nein'}">${umsatzErreicht?'✓':'✗'} Umsatz</span>
+        <span class="praemie-badge ${bonZiel==null?'praemie-offen':bonErreicht?'praemie-ok':'praemie-nein'}">${bonZiel==null?'– Bon':bonErreicht?'✓ Bon':'✗ Bon'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('fl-historie-inhalt').innerHTML = html;
+}
+
+// ═══ VERKAUFSLEITER ═══
+function renderVL() {
+  renderVLUebersicht();
+  renderVLKarten();
+  renderVLMonat();
+  renderVLSollIst();
+}
+
+function renderVLUebersicht() {
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
+  const currentMonthRows = b => (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+  const monatLabel = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+  // Ranking mit Monatsziel-Balken
+  const rankData = BRANCHES.map(b => {
+    const rows = currentMonthRows(b);
+    const a = calcAvg(rows);
+    const istKumuliert = rows.reduce((s,r) => s + (r.ist_umsatz||0), 0);
+    const sollGesamt = getSollGesamt(b, refYear, refMonth);
+    const pct = sollGesamt > 0 ? Math.min((istKumuliert / sollGesamt) * 100, 100) : null;
+    return { branch: b, name: BRANCH_NAMES[b], ...a, istKumuliert, sollGesamt, pct };
+  }).sort((a,b) => (b.ist_umsatz||0) - (a.ist_umsatz||0));
+
+  document.getElementById('vl-ranking-title').textContent = `Filial-Ranking – ${monatLabel}`;
+  document.getElementById('vl-ranking').innerHTML = `
+    <thead><tr>
+      <th>#</th><th>Filiale</th><th>Ø Umsatz/Tag</th><th>Monatsziel</th><th>Retoure</th><th>Ø Bon</th><th>Trend</th>
+    </tr></thead>
+    <tbody>${rankData.map((r,i) => {
+      const barHtml = r.pct != null
+        ? `<div class="mini-bar-wrap"><div class="mini-bar-fill ${r.pct>=100?'erreicht':''}" style="width:${r.pct.toFixed(0)}%"></div></div><span class="mini-bar-label">${r.pct.toFixed(0)}%</span>`
+        : '<span class="mini-bar-label">–</span>';
+      return `<tr>
+        <td><span class="rank-num ${i<3?'r'+(i+1):''}">${i+1}</span></td>
+        <td><strong>${r.name}</strong></td>
+        <td>${fmtEur(r.ist_umsatz)}</td>
+        <td>${barHtml}</td>
+        <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+        <td>${fmtEur(r.bon)}</td>
+        <td>${trendArrow(allData[r.branch]||[])}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  `;
+
+  // Bar chart
+  const ctx = document.getElementById('chart-ranking-bar').getContext('2d');
+  if (chartsInstances['rank-bar']) chartsInstances['rank-bar'].destroy();
+  chartsInstances['rank-bar'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rankData.map(r => r.name),
+      datasets: [{ label: 'Ø Ist-Umsatz', data: rankData.map(r => r.ist_umsatz||0), backgroundColor: rankData.map(r => BRANCH_COLORS[r.branch]), borderRadius: 4 }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => v.toLocaleString('de-DE')+'€' } } } }
+  });
+}
+
+function renderVLKarten() {
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
+  document.getElementById('vl-karten-grid').innerHTML = BRANCHES.map(b => {
+    const allRows = allData[b]||[];
+    const rows = allRows.filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+    const a = calcAvg(rows);
+    const last = allRows[allRows.length-1]||{};
+    const lastDate = last._date ? last._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–';
+    const istKumuliert = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
+    const sollGesamt = getSollGesamt(b, refYear, refMonth);
+    const pct = sollGesamt > 0 ? Math.min((istKumuliert/sollGesamt)*100,100) : null;
+    const trend = trendArrow(allRows);
+    const color = BRANCH_COLORS[b];
+    return `<div class="filial-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0;border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</h3>
+        <span style="font-size:11px;color:#aaa">Letzter: ${lastDate}</span>
+      </div>
+      <div class="fc-metrics">
+        <div class="fc-metric"><div class="label">Ø Umsatz/Tag</div><div class="val">${fmtEur(a.ist_umsatz)}</div></div>
+        <div class="fc-metric"><div class="label">Retoure</div><div class="val">${fmtPct(a.retoure_pct)} ${pillRetoure(a.retoure_pct)}</div></div>
+        <div class="fc-metric"><div class="label">Ø Bon</div><div class="val">${fmtEur(a.bon)}</div></div>
+        <div class="fc-metric"><div class="label">Kunden/Tag</div><div class="val">${fmtN(a.kunden)}</div></div>
+      </div>
+      ${pct != null ? `<div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
+          <span>Monatsziel</span><span>${pct.toFixed(0)}%</span>
+        </div>
+        <div class="mini-bar-wrap" style="width:100%;display:block">
+          <div class="mini-bar-fill ${pct>=100?'erreicht':''}" style="width:${pct.toFixed(0)}%;background:${pct>=100?'#2e7d32':color}"></div>
+        </div>
+      </div>` : ''}
+      <div style="margin-top:10px;font-size:12px;color:#888">Trend: ${trend}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderVLMonat() {
+  // Gruppiere nach Monat
+  const months = {};
+  BRANCHES.forEach(b => {
+    (allData[b]||[]).forEach(r => {
+      if (!r._date) return;
+      const key = `${r._date.getFullYear()}-${String(r._date.getMonth()+1).padStart(2,'0')}`;
+      if (!months[key]) months[key] = {};
+      if (!months[key][b]) months[key][b] = { umsatz: 0, retoure: [], count: 0 };
+      months[key][b].umsatz += r.ist_umsatz||0;
+      if (r.retoure_pct != null) months[key][b].retoure.push(r.retoure_pct);
+      months[key][b].count++;
+    });
+  });
+  const monthKeys = Object.keys(months).sort().slice(-6);
+  const colors = BRANCHES.map(b => BRANCH_COLORS[b]);
+
+  const ctx1 = document.getElementById('chart-monat').getContext('2d');
+  if (chartsInstances['monat']) chartsInstances['monat'].destroy();
+  chartsInstances['monat'] = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: monthKeys.map(k => { const [y,m]=k.split('-'); return `${m}/${y.slice(2)}`; }),
+      datasets: BRANCHES.map((b,i) => ({
+        label: BRANCH_NAMES[b],
+        data: monthKeys.map(k => months[k]?.[b]?.umsatz||0),
+        backgroundColor: colors[i], borderRadius: 2,
+      }))
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{font:{size:11}} } }, scales: { x: {stacked:false}, y: { ticks: { callback: v => v.toLocaleString('de-DE')+'€' } } } }
+  });
+
+  const ctx2 = document.getElementById('chart-retoure-trend').getContext('2d');
+  if (chartsInstances['retoure-trend']) chartsInstances['retoure-trend'].destroy();
+  chartsInstances['retoure-trend'] = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: monthKeys.map(k => { const [y,m]=k.split('-'); return `${m}/${y.slice(2)}`; }),
+      datasets: BRANCHES.map((b,i) => ({
+        label: BRANCH_NAMES[b],
+        data: monthKeys.map(k => months[k]?.[b] ? avg(months[k][b].retoure) : null),
+        borderColor: colors[i], tension: .3, fill: false, pointRadius: 4,
+      }))
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels:{font:{size:11}} } }, scales: { y: { ticks: { callback: v => v.toFixed(1)+'%' } } } }
+  });
+}
+
+function renderVLSollIst() {
+  const now = new Date();
+  const refYear = now.getFullYear();
+  const refMonth = now.getMonth();
+  const monatLabel = now.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+  let html = '';
+  BRANCHES.forEach(b => {
+    const rows = (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
+    if (!rows.length) return;
+    const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
+    const sollGesamt = getSollGesamt(b, refYear, refMonth);
+    const pct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100,100) : null;
+    const erreicht = pct != null && istGesamt >= sollGesamt;
+    const color = BRANCH_COLORS[b];
+    const avgRetoure = avg(rows.map(r=>r.retoure_pct).filter(v=>v!=null));
+
+    // Ampelfarbe für Retoure-Pill
+    const retPill = pillRetoure(avgRetoure);
+
+    const barHtml = pct != null ? `
+      <div class="akkordeon-bar-row">
+        <div class="mini-bar-wrap" style="width:70px">
+          <div class="mini-bar-fill ${erreicht?'erreicht':''}" style="width:${pct.toFixed(0)}%;background:${erreicht?'#2e7d32':color}"></div>
+        </div>
+        <span class="mini-bar-label" style="font-weight:600;color:${erreicht?'#2e7d32':'#111'}">${pct.toFixed(0)}%</span>
+      </div>` : '';
+
+    const tagesRows = [...rows].reverse().map(r => `<tr>
+      <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
+      <td>${fmtEur(r.soll_umsatz)}</td>
+      <td>${fmtEur(r.ist_umsatz)}</td>
+      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
+      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+    </tr>`).join('');
+
+    html += `
+      <div class="akkordeon-item">
+        <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)">
+          <span class="akkordeon-chevron">▶</span>
+          <span class="akkordeon-title" style="border-left:3px solid ${color};padding-left:8px">${BRANCH_NAMES[b]}</span>
+          <div class="akkordeon-meta">
+            ${barHtml}
+            <span class="akkordeon-betraege">${fmtEur(istGesamt)} / ${fmtEur(sollGesamt)}</span>
+          </div>
+        </div>
+        <div class="akkordeon-body">
+          <table class="data-table">
+            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th></tr></thead>
+            <tbody>${tagesRows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('vl-soll-ist-table').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten</p>';
+}
+
+function toggleAkkordeon(el) {
+  el.classList.toggle('open');
+}
+
+// ═══ VERWALTUNG ═══
+function renderVW() {
+  renderVLUebersicht(); // reuse ranking
+  // Copy gesamt + ranking into vw
+  document.getElementById('vw-gesamt').innerHTML = document.getElementById('vl-gesamt').innerHTML;
+  document.getElementById('vw-ranking').innerHTML = document.getElementById('vl-ranking').innerHTML;
+  // PINs
+  const rows = Object.entries(PINS).map(([pin, u]) => `<tr>
+    <td>${u.role === 'fl' ? 'Filialleitung' : u.role === 'vl' ? 'Verkaufsleiter' : 'Verwaltung'}</td>
+    <td>${u.name}</td>
+    <td><span class="pin-val">${pin}</span></td>
+  </tr>`).join('');
+  document.getElementById('pin-table-el').innerHTML = `
+    <thead><tr><th>Rolle</th><th>Filiale / Name</th><th>PIN</th></tr></thead>
+    <tbody>${rows}</tbody>
+  `;
+}
+
+// ── HELPERS ──
+function calcAvg(rows) {
+  if (!rows.length) return {};
+  const fields = ['ist_umsatz','soll_umsatz','retoure_pct','bon','kunden','std_leistung_ist','std_leistung_soll','vk_std_ist','vk_std_soll'];
+  const out = {};
+  fields.forEach(f => {
+    const vals = rows.map(r => r[f]).filter(v => v != null && v !== 0 || f === 'ist_umsatz');
+    const nonNull = rows.map(r => r[f]).filter(v => v != null);
+    out[f] = nonNull.length ? nonNull.reduce((a,b)=>a+b,0)/nonNull.length : null;
+  });
+  return out;
+}
+
+function avg(arr) {
+  const a = arr.filter(v => v != null);
+  return a.length ? a.reduce((s,v)=>s+v,0)/a.length : null;
+}
+
+function trendArrow(rows) {
+  if (rows.length < 4) return '<span style="color:#aaa">–</span>';
+  const old = avg(rows.slice(-7,-4).map(r=>r.ist_umsatz));
+  const neu = avg(rows.slice(-3).map(r=>r.ist_umsatz));
+  if (old == null || neu == null) return '–';
+  const pct = ((neu-old)/old*100).toFixed(1);
+  const col = pct > 0 ? '#2e7d32' : pct < 0 ? '#c62828' : '#888';
+  const arr = pct > 0 ? '▲' : pct < 0 ? '▼' : '►';
+  return `<span style="color:${col}">${arr} ${Math.abs(pct)}%</span>`;
+}
+
+function fmtEur(v) { return v != null ? v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+'\u202f€' : '–'; }
+function fmtPct(v) { return v != null ? v.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : '–'; }
+function fmtN(v) { return v != null ? Math.round(v).toLocaleString('de-DE') : '–'; }
+
+function pillRetoure(v) {
+  if (v == null) return '';
+  if (v >= 12 && v <= 17) return '<span class="pill pill-green">✓</span>';
+  if (v > 17 && v <= 22) return '<span class="pill pill-yellow">⚠</span>';
+  return '<span class="pill pill-red">!</span>';
+}
+function pillStunden(v) {
+  if (v == null) return '';
+  if (v >= 85 && v <= 120) return '<span class="pill pill-green">✓</span>';
+  if ((v >= 70 && v < 85) || (v > 120 && v <= 140)) return '<span class="pill pill-yellow">⚠</span>';
+  return '<span class="pill pill-red">!</span>';
+}
+
+function heroBox(label, val, pill='') {
+  return `<div class="hero-item"><div class="label">${label}</div><div class="val">${val}</div>${pill}</div>`;
+}
+function kpiBox(label, val, pill='') {
+  return `<div class="kpi-box"><div class="label">${label}</div><div class="val">${val}</div>${pill}</div>`;
+}
+</script>
+</body>
+</html>
