@@ -370,15 +370,26 @@ async function loadPins() {
     const text = await resp.text();
     const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
     const rows = json.table.rows;
+
+    // DEBUG: Rohdaten anzeigen
+    const debugLines = rows.map((row, i) => {
+      const cells = (row.c||[]).map(c => c ? JSON.stringify(c.v) : 'null');
+      return `Zeile ${i+1}: ${cells.join(' | ')}`;
+    });
+    document.getElementById('login-loading').innerHTML =
+      '<div style="text-align:left;font-size:11px;font-family:monospace;color:#555;max-height:200px;overflow:auto">' +
+      '<strong>Sheet-Inhalt (Zugaenge):</strong><br>' +
+      debugLines.join('<br>') +
+      '</div>';
+
     const newPins = {};
     for (const row of rows) {
       if (!row.c || !row.c[0] || !row.c[0].v) continue;
-      const col0 = String(row.c[0].v).trim();       // z.B. "B1", "B12", "vl", "Verwaltung"
-      const col1 = row.c[1] ? String(row.c[1].v || '').trim() : '';  // PIN
+      const col0 = String(row.c[0].v).trim();
+      const col1 = row.c[1] ? String(row.c[1].v || '').trim() : '';
       if (!col1) continue;
       const pin = col1;
 
-      // Rolle + Filiale + Name aus Spalte A ableiten
       let role, branch, name;
       const upper = col0.toUpperCase();
       if (upper === 'VL') {
@@ -388,22 +399,33 @@ async function loadPins() {
       } else if (BRANCH_NAMES[upper]) {
         role = 'fl'; branch = upper; name = BRANCH_NAMES[upper];
       } else {
-        // Fallback: Spalte A als Rolle interpretieren, Spalte C optional als Filiale, D als Name
         role   = col0.toLowerCase();
         branch = row.c[2] ? String(row.c[2].v||'').trim() || null : null;
         name   = row.c[3] ? String(row.c[3].v||'').trim() : col0;
       }
       if (pin && role) newPins[pin] = { role, branch, name };
     }
-    if (Object.keys(newPins).length === 0) throw new Error('Keine Einträge');
+
+    // DEBUG: geparste PINs anzeigen
+    document.getElementById('login-loading').innerHTML +=
+      '<div style="text-align:left;font-size:11px;font-family:monospace;color:#333;margin-top:8px">' +
+      '<strong>Geparste PINs:</strong><br>' +
+      Object.entries(newPins).map(([p,u]) => `${p} → ${u.role} / ${u.branch||'–'} / ${u.name}`).join('<br>') +
+      '<br><br><button onclick="activatePins()" style="margin-top:6px;padding:6px 14px;background:#111;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">✓ Sieht korrekt aus – weiter</button>' +
+      '</div>';
+
+    if (Object.keys(newPins).length === 0) throw new Error('Keine Einträge erkannt');
     PINS = newPins;
-    pinsLoaded = true;
-    document.getElementById('login-loading').style.display = 'none';
-    document.getElementById('login-pin-ui').style.display = 'block';
   } catch(e) {
-    document.getElementById('login-loading').textContent = 'Fehler beim Laden – bitte Seite neu laden.';
+    document.getElementById('login-loading').innerHTML += '<br><span style="color:#c62828">Fehler: ' + e.message + '</span>';
     console.warn('PIN-Ladefehler:', e);
   }
+}
+
+function activatePins() {
+  pinsLoaded = true;
+  document.getElementById('login-loading').style.display = 'none';
+  document.getElementById('login-pin-ui').style.display = 'block';
 }
 
 // ── LOGIN ──
