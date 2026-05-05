@@ -365,10 +365,22 @@ function mapCols(colLabels) {
 // ── PIN-LOADING AUS SHEET ──
 async function loadPins() {
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Zugaenge`;
-    const resp = await fetch(url);
-    const text = await resp.text();
-    const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
+    // Tab-Name: mehrere Varianten versuchen
+    const tabNames = ['Zugaenge', 'Zug%C3%A4nge', 'Zugänge', 'zugaenge'];
+    let json = null;
+    for (const tab of tabNames) {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${tab}`;
+        const resp = await fetch(url);
+        const text = await resp.text();
+        const parsed = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
+        if (parsed.table && parsed.table.rows && parsed.table.rows.length > 0) {
+          json = parsed; break;
+        }
+      } catch(e) { continue; }
+    }
+    if (!json) throw new Error('Tab "Zugaenge" nicht gefunden');
+
     const rows = json.table.rows;
 
     // DEBUG: Rohdaten anzeigen
@@ -378,17 +390,16 @@ async function loadPins() {
     });
     document.getElementById('login-loading').innerHTML =
       '<div style="text-align:left;font-size:11px;font-family:monospace;color:#555;max-height:200px;overflow:auto">' +
-      '<strong>Sheet-Inhalt (Zugaenge):</strong><br>' +
-      debugLines.join('<br>') +
-      '</div>';
+      '<strong>Sheet-Rohdaten:</strong><br>' + debugLines.join('<br>') + '</div>';
 
     const newPins = {};
     for (const row of rows) {
       if (!row.c || !row.c[0] || !row.c[0].v) continue;
       const col0 = String(row.c[0].v).trim();
-      const col1 = row.c[1] ? String(row.c[1].v || '').trim() : '';
-      if (!col1) continue;
-      const pin = col1;
+      // gviz liefert Zahlen als number → immer zu String
+      const rawPin = row.c[1] ? row.c[1].v : null;
+      if (rawPin === null || rawPin === undefined || rawPin === '') continue;
+      const pin = String(rawPin).trim().padStart(4, '0');
 
       let role, branch, name;
       const upper = col0.toUpperCase();
@@ -409,12 +420,12 @@ async function loadPins() {
     // DEBUG: geparste PINs anzeigen
     document.getElementById('login-loading').innerHTML +=
       '<div style="text-align:left;font-size:11px;font-family:monospace;color:#333;margin-top:8px">' +
-      '<strong>Geparste PINs:</strong><br>' +
+      '<strong>Erkannte PINs:</strong><br>' +
       Object.entries(newPins).map(([p,u]) => `${p} → ${u.role} / ${u.branch||'–'} / ${u.name}`).join('<br>') +
       '<br><br><button onclick="activatePins()" style="margin-top:6px;padding:6px 14px;background:#111;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">✓ Sieht korrekt aus – weiter</button>' +
       '</div>';
 
-    if (Object.keys(newPins).length === 0) throw new Error('Keine Einträge erkannt');
+    if (Object.keys(newPins).length === 0) throw new Error('Keine PINs erkannt');
     PINS = newPins;
   } catch(e) {
     document.getElementById('login-loading').innerHTML += '<br><span style="color:#c62828">Fehler: ' + e.message + '</span>';
