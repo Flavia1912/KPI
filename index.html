@@ -1277,7 +1277,7 @@ function renderVLHistorie() {
     return;
   }
 
-  const html = monate.map(({ key, year, month }) => {
+  const html = monate.map(({ key, year, month }, idx) => {
     const monatLabel = new Date(year, month, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
 
     // Daten je Filiale für diesen Monat
@@ -1319,7 +1319,7 @@ function renderVLHistorie() {
         </div>`;
       }).join('');
 
-    return `<div class="akkordeon-item">
+    return `<div class="akkordeon-item${idx===0?' open':''}">
       <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)">
         <span class="akkordeon-chevron">▶</span>
         <span class="akkordeon-title">${monatLabel}</span>
