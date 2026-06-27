@@ -258,18 +258,18 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
   <!-- VERKAUFSLEITER VIEW -->
   <div id="view-vl" style="display:none">
     <div class="nav-tabs">
-      <div class="nav-tab active" onclick="switchTab(this,'vl-karten')">Filial-Karten</div>
-      <div class="nav-tab" onclick="switchTab(this,'vl-soll-ist')">Soll/Ist</div>
+      <div class="nav-tab active" onclick="switchTab(this,'vl-soll-ist')">Soll/Ist</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-karten')">Filial-Karten</div>
       <div class="nav-tab" onclick="switchTab(this,'vl-historie')">Historie</div>
     </div>
-    <div id="vl-karten" class="page active">
-      <div class="filial-cards" id="vl-karten-grid"></div>
-    </div>
-    <div id="vl-soll-ist" class="page">
+    <div id="vl-soll-ist" class="page active">
       <div class="card">
         <h2 id="vl-sollIst-title">Soll vs. Ist – lfd. Monat</h2>
         <div id="vl-soll-ist-table"></div>
       </div>
+    </div>
+    <div id="vl-karten" class="page">
+      <div class="filial-cards" id="vl-karten-grid"></div>
     </div>
     <div id="vl-historie" class="page">
       <div id="vl-historie-inhalt"><p style="color:#888;font-size:13px">Lädt…</p></div>
@@ -1023,9 +1023,9 @@ function renderHistorie(rows) {
 
 // ═══ VERKAUFSLEITER ═══
 function renderVL() {
+  renderVLSollIst();
   renderVLKarten();
   renderVLMonat();
-  renderVLSollIst();
   renderVLHistorie();
 }
 
@@ -1124,7 +1124,6 @@ function renderVLKarten() {
         <div class="fc-metric"><div class="label">Retoure</div><div class="val">${fmtPct(a.retoure_pct)} ${pillRetoure(a.retoure_pct)}</div></div>
         <div class="fc-metric"><div class="label">Ø Bon</div><div class="val">${fmtEur(a.bon)}</div></div>
         <div class="fc-metric"><div class="label">Kunden/Tag</div><div class="val">${fmtN(a.kunden)}</div></div>
-        <div class="fc-metric"><div class="label">Std-Leistung</div><div class="val">${a.std_leistung_ist!=null?a.std_leistung_ist.toFixed(1)+'%':'–'}</div></div>
       </div>
       ${pct != null ? `<div style="margin-top:12px">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
@@ -1221,6 +1220,7 @@ function renderVLSollIst() {
       <td>${fmtEur(r.ist_umsatz)}</td>
       <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
+      <td>${r.std_leistung_ist!=null?r.std_leistung_ist.toFixed(1)+'%':'–'}</td>
     </tr>`).join('');
 
     html += `
@@ -1235,7 +1235,7 @@ function renderVLSollIst() {
         </div>
         <div class="akkordeon-body">
           <table class="data-table">
-            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th></tr></thead>
+            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th><th>Std-Lst %</th></tr></thead>
             <tbody>${tagesRows}</tbody>
           </table>
         </div>
