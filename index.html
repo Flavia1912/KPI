@@ -933,6 +933,7 @@ function renderHistorie(rows) {
     const m = r._date.getMonth();
     // Laufenden Monat überspringen
     if (y === aktuellesJahr && m === aktuellerMonat) return;
+    if (y < 2026 || (y === 2026 && m < 4)) return; // Prämiensystem ab Mai 2026
     const key = `${y}-${m}`;
     if (!monateMap[key]) monateMap[key] = { year: y, month: m, rows: [] };
     monateMap[key].rows.push(r);
@@ -1263,6 +1264,7 @@ function renderVLHistorie() {
       const y = r._date.getFullYear();
       const m = r._date.getMonth();
       if (y === aktuellesJahr && m === aktuellerMonat) return;
+      if (y < 2026 || (y === 2026 && m < 4)) return; // Prämiensystem ab Mai 2026
       monateSet.add(`${y}-${m}`);
     });
   });
