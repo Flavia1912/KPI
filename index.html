@@ -968,53 +968,18 @@ function renderHistorie(rows) {
     const bonZiel = getBonZielFuerMonat(currentUser.branch, year, month);
     const bonErreicht = bonZiel != null && avgBonMonat != null && avgBonMonat >= bonZiel;
 
-    // Umsatz-Balken
-    const barHtml = umsatzPct != null ? `
-      <div style="background:#f0f0f0;border-radius:4px;height:6px;overflow:hidden;margin:5px 0 3px">
-        <div style="height:100%;border-radius:4px;width:${umsatzPct.toFixed(0)}%;background:${umsatzErreicht?'#2e7d32':'#111'};transition:width .5s"></div>
-      </div>` : '';
-
     const umsatzBadge = sollGesamt > 0
-      ? `<span class="praemie-badge ${umsatzErreicht?'praemie-ok':'praemie-nein'}">${umsatzErreicht?'✓ Umsatz-Prämie':'✗ Umsatz-Prämie'}</span>`
+      ? `<span class="praemie-badge ${umsatzErreicht?'praemie-ok':'praemie-nein'}">${umsatzErreicht?'✓ Umsatzziel':'✗ Umsatzziel'}</span>`
       : '';
     const bonBadge = bonZiel == null
-      ? `<span class="praemie-badge praemie-offen">– Bon-Prämie</span>`
-      : `<span class="praemie-badge ${bonErreicht?'praemie-ok':'praemie-nein'}">${bonErreicht?'✓ Bon-Prämie':'✗ Bon-Prämie'}</span>`;
+      ? `<span class="praemie-badge praemie-offen">– Kundenbon</span>`
+      : `<span class="praemie-badge ${bonErreicht?'praemie-ok':'praemie-nein'}">${bonErreicht?'✓ Kundenbon':'✗ Kundenbon'}</span>`;
 
-    // Tagesdetails
-    const tagesRows = mRows.filter(r => r.ist_umsatz != null && r._date).sort((a,b) => b._date - a._date);
-    const tagesHtml = tagesRows.map(r => `
-      <div style="display:grid;grid-template-columns:60px 1fr 1fr 1fr 1fr;gap:4px;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:12px;align-items:center">
-        <span style="color:#888">${r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</span>
-        <span style="font-weight:500">${fmtEur(r.ist_umsatz)}</span>
-        <span style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</span>
-        <span style="color:#555">${r.bon!=null?fmtEur(r.bon):'–'}</span>
-        <span style="color:#888">${r.std_leistung_ist!=null?fmtEur(r.std_leistung_ist):'–'}</span>
-      </div>`).join('');
-
-    const tagesHeader = `<div style="display:grid;grid-template-columns:60px 1fr 1fr 1fr 1fr;gap:4px;padding:6px 0 4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#aaa;border-bottom:1.5px solid #e0e0e0">
-      <span>Datum</span><span>Ist</span><span>Diff</span><span>Ø Bon</span><span>Std-Lst</span>
-    </div>`;
-
-    return `<div class="akkordeon-item">
-      <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)" style="flex-wrap:wrap;gap:8px">
-        <span class="akkordeon-chevron">▶</span>
-        <span style="font-size:14px;font-weight:600;flex:1">${monatLabel}</span>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${umsatzBadge}
-          ${bonBadge}
-        </div>
-        <div style="width:100%;padding-left:22px">
-          ${barHtml}
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:2px">
-            <span>${fmtEur(istGesamt)} / ${sollGesamt>0?fmtEur(sollGesamt):'–'}</span>
-            <span>Ø Bon: <strong style="color:${bonErreicht?'#2e7d32':(bonZiel&&avgBonMonat?'#c62828':'#555')}">${avgBonMonat!=null?fmtEur(avgBonMonat):'–'}</strong> · Ziel: ${bonZiel!=null?fmtEur(bonZiel):'–'}</span>
-          </div>
-        </div>
-      </div>
-      <div class="akkordeon-body" style="padding:0 16px 12px">
-        ${tagesHeader}
-        ${tagesHtml || '<p style="font-size:12px;color:#aaa;margin-top:8px">Keine Einträge</p>'}
+    return `<div style="background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:14px;font-weight:600;color:#111">${monatLabel}</span>
+      <div style="display:flex;gap:8px">
+        ${umsatzBadge}
+        ${bonBadge}
       </div>
     </div>`;
   }).join('');
