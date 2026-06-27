@@ -975,11 +975,21 @@ function renderHistorie(rows) {
       ? `<span class="praemie-badge praemie-offen">– Kundenbon</span>`
       : `<span class="praemie-badge ${bonErreicht?'praemie-ok':'praemie-nein'}">${bonErreicht?'✓ Kundenbon':'✗ Kundenbon'}</span>`;
 
-    return `<div style="background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:14px;font-weight:600;color:#111">${monatLabel}</span>
-      <div style="display:flex;gap:8px">
-        ${umsatzBadge}
-        ${bonBadge}
+    const umsatzPctStr = umsatzPct!=null ? ` (${umsatzPct.toFixed(1)}%)` : '';
+    const bonVergleich = avgBonMonat!=null && bonZiel!=null
+      ? ` · Bon: ${fmtEur(avgBonMonat)} / ${fmtEur(bonZiel)}`
+      : avgBonMonat!=null ? ` · Bon: ${fmtEur(avgBonMonat)}` : '';
+
+    return `<div style="background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:600;color:#111">${monatLabel}</span>
+        <div style="display:flex;gap:8px">
+          ${umsatzBadge}
+          ${bonBadge}
+        </div>
+      </div>
+      <div style="font-size:12px;color:#888">
+        Umsatz: ${fmtEur(istGesamt)} / ${fmtEur(sollGesamt)}${umsatzPctStr}${bonVergleich}
       </div>
     </div>`;
   }).join('');
