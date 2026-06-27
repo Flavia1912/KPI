@@ -975,7 +975,7 @@ function renderHistorie(rows) {
       ? `<span class="praemie-badge praemie-offen">– Kundenbon</span>`
       : `<span class="praemie-badge ${bonErreicht?'praemie-ok':'praemie-nein'}">${bonErreicht?'✓ Kundenbon':'✗ Kundenbon'}</span>`;
 
-    const umsatzPctStr = umsatzPct!=null ? ` (${umsatzPct.toFixed(1)}%)` : '';
+    const umsatzPctStr = '';
     const bonVergleich = avgBonMonat!=null && bonZiel!=null
       ? ` · Bon: ${fmtEur(avgBonMonat)} / ${fmtEur(bonZiel)}`
       : avgBonMonat!=null ? ` · Bon: ${fmtEur(avgBonMonat)}` : '';
