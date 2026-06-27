@@ -1286,21 +1286,36 @@ function renderVLHistorie() {
       .sort((a,b) => (b.istGesamt||0)-(a.istGesamt||0))
       .map(f => {
         const color = BRANCH_COLORS[f.branch];
-        const barW = f.pct != null ? f.pct.toFixed(0) : 0;
-        return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:600;border-left:3px solid ${color};padding-left:7px">${f.name}</span>
+        const barW = f.pct != null ? Math.min(f.pct, 100).toFixed(0) : 0;
+        // Tageseinträge für diese Filiale in diesem Monat
+        const tRows = (allData[f.branch]||[])
+          .filter(r => r._date && r._date.getFullYear()===year && r._date.getMonth()===month && r.ist_umsatz!=null)
+          .sort((a,b) => a._date - b._date);
+        const tagesHtml = tRows.map(r => `
+          <div style="display:grid;grid-template-columns:55px 1fr 1fr 1fr;gap:4px;padding:5px 0;border-bottom:1px solid #f8f8f8;font-size:11px">
+            <span style="color:#aaa">${r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</span>
+            <span>${fmtEur(r.ist_umsatz)}</span>
+            <span style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</span>
+            <span style="color:#555">${r.bon!=null?fmtEur(r.bon):'–'}</span>
+          </div>`).join('');
+        return `<div class="akkordeon-item" style="border:none;border-radius:0;margin:0">
+          <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)" style="padding:10px 0;background:transparent;border-bottom:1px solid #f0f0f0">
+            <span class="akkordeon-chevron" style="font-size:10px">▶</span>
+            <span style="font-size:13px;font-weight:600;border-left:3px solid ${color};padding-left:7px;flex:1">${f.name}</span>
             <div style="display:flex;gap:5px;align-items:center">
               <span class="praemie-badge ${f.erreicht?'praemie-ok':'praemie-nein'}">${f.erreicht?'✓':'✗'} Umsatz</span>
               <span class="praemie-badge ${f.bonZiel==null?'praemie-offen':f.bonErreicht?'praemie-ok':'praemie-nein'}">${f.bonZiel==null?'–':f.bonErreicht?'✓':'✗'} Bon</span>
             </div>
           </div>
-          <div style="background:#f0f0f0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:4px">
-            <div style="height:100%;border-radius:4px;width:${barW}%;background:${f.erreicht?'#2e7d32':color}"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa">
-            <span>Ist: ${fmtEur(f.istGesamt)} / Soll: ${fmtEur(f.sollGesamt)}</span>
-            <span>Ø Bon: ${f.avgBon!=null?fmtEur(f.avgBon):'–'} / Ziel: ${f.bonZiel!=null?fmtEur(f.bonZiel):'–'}</span>
+          <div class="akkordeon-body" style="padding:4px 0 8px 16px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;padding:6px 0 4px;border-bottom:1px solid #f0f0f0;margin-bottom:2px">
+              <span>Umsatz: ${fmtEur(f.istGesamt)} / ${fmtEur(f.sollGesamt)}</span>
+              <span>Ø Bon: ${f.avgBon!=null?fmtEur(f.avgBon):'–'} / Ziel: ${f.bonZiel!=null?fmtEur(f.bonZiel):'–'}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:55px 1fr 1fr 1fr;gap:4px;padding:4px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#bbb">
+              <span>Datum</span><span>Ist</span><span>Diff</span><span>Ø Bon</span>
+            </div>
+            ${tagesHtml || '<p style="font-size:11px;color:#aaa">Keine Einträge</p>'}
           </div>
         </div>`;
       }).join('');
