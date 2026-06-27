@@ -1282,8 +1282,9 @@ function renderVLHistorie() {
     const bonErreichtCount = filialen.filter(f=>f.bonErreicht).length;
     const gesamtPct = gesamtSoll > 0 ? Math.min((gesamtIst/gesamtSoll)*100,100) : null;
 
+    const HISTORIE_ORDER = ['B1','B5','B7','B8','B11','B12','B16','B17'];
     const filialenRows = filialen
-      .sort((a,b) => (b.istGesamt||0)-(a.istGesamt||0))
+      .sort((a,b) => HISTORIE_ORDER.indexOf(a.branch) - HISTORIE_ORDER.indexOf(b.branch))
       .map(f => {
         const color = BRANCH_COLORS[f.branch];
         const barW = f.pct != null ? Math.min(f.pct, 100).toFixed(0) : 0;
