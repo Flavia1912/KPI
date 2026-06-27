@@ -988,7 +988,7 @@ function renderHistorie(rows) {
         <span style="font-weight:500">${fmtEur(r.ist_umsatz)}</span>
         <span style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</span>
         <span style="color:#555">${r.bon!=null?fmtEur(r.bon):'–'}</span>
-        <span style="color:#888">${r.std_leistung_ist!=null?r.std_leistung_ist.toFixed(1)+'%':'–'}</span>
+        <span style="color:#888">${r.std_leistung_ist!=null?fmtEur(r.std_leistung_ist):'–'}</span>
       </div>`).join('');
 
     const tagesHeader = `<div style="display:grid;grid-template-columns:60px 1fr 1fr 1fr 1fr;gap:4px;padding:6px 0 4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#aaa;border-bottom:1.5px solid #e0e0e0">
@@ -1220,7 +1220,7 @@ function renderVLSollIst() {
       <td>${fmtEur(r.ist_umsatz)}</td>
       <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
       <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-      <td>${r.std_leistung_ist!=null?r.std_leistung_ist.toFixed(1)+'%':'–'}</td>
+      <td>${r.std_leistung_ist!=null?fmtEur(r.std_leistung_ist):'–'}</td>
     </tr>`).join('');
 
     html += `
@@ -1235,7 +1235,7 @@ function renderVLSollIst() {
         </div>
         <div class="akkordeon-body">
           <table class="data-table">
-            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th><th>Std-Lst %</th></tr></thead>
+            <thead><tr><th>Datum</th><th>Soll</th><th>Ist</th><th>Diff</th><th>Retoure</th><th>€/Std</th></tr></thead>
             <tbody>${tagesRows}</tbody>
           </table>
         </div>
