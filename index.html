@@ -691,7 +691,7 @@ async function fetchBranch(branch) {
       rows.push(obj);
     }
     rows.sort((a,b) => (a._date||0) - (b._date||0));
-    return { rows: rows.slice(-60), monatsSoll, monatsAvgBon };
+    return { rows: rows.slice(-180), monatsSoll, monatsAvgBon };  // 6 Monate
   } catch(e) {
     console.warn(`Fehler beim Laden von ${branch}:`, e);
     return { rows: [], monatsSoll: {} };
