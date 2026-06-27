@@ -1291,7 +1291,12 @@ function renderVLHistorie() {
       const pct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100, 100) : null;
       const erreicht = sollGesamt > 0 && istGesamt >= sollGesamt;
       const avgRet = avg(rows.map(r=>r.retoure_pct).filter(v=>v!=null));
-      return { branch: b, name: BRANCH_NAMES[b], istGesamt, sollGesamt, pct, erreicht, avgRet };
+      // Bon-Prämie
+      const bonsMonat = rows.map(r=>r.bon).filter(v=>v!=null&&v>0);
+      const avgBon = bonsMonat.length ? bonsMonat.reduce((a,b)=>a+b,0)/bonsMonat.length : null;
+      const bonZiel = getBonZielFuerMonat(b, year, month);
+      const bonErreicht = bonZiel!=null && avgBon!=null && avgBon>=bonZiel;
+      return { branch: b, name: BRANCH_NAMES[b], istGesamt, sollGesamt, pct, erreicht, avgRet, avgBon, bonZiel, bonErreicht };
     }).filter(Boolean);
 
     if (!filialen.length) return '';
@@ -1299,6 +1304,7 @@ function renderVLHistorie() {
     const gesamtIst = filialen.reduce((s,f) => s+f.istGesamt, 0);
     const gesamtSoll = filialen.reduce((s,f) => s+f.sollGesamt, 0);
     const erreichtCount = filialen.filter(f=>f.erreicht).length;
+    const bonErreichtCount = filialen.filter(f=>f.bonErreicht).length;
     const gesamtPct = gesamtSoll > 0 ? Math.min((gesamtIst/gesamtSoll)*100,100) : null;
 
     const filialenRows = filialen
@@ -1309,14 +1315,17 @@ function renderVLHistorie() {
         return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:13px;font-weight:600;border-left:3px solid ${color};padding-left:7px">${f.name}</span>
-            <span style="font-size:12px;font-weight:600;color:${f.erreicht?'#2e7d32':f.pct!=null?'#c62828':'#aaa'}">${f.pct!=null?f.pct.toFixed(0)+'%':'–'} ${f.erreicht?'✓':''}</span>
+            <div style="display:flex;gap:5px;align-items:center">
+              <span class="praemie-badge ${f.erreicht?'praemie-ok':'praemie-nein'}">${f.erreicht?'✓':'✗'} Umsatz</span>
+              <span class="praemie-badge ${f.bonZiel==null?'praemie-offen':f.bonErreicht?'praemie-ok':'praemie-nein'}">${f.bonZiel==null?'–':f.bonErreicht?'✓':'✗'} Bon</span>
+            </div>
           </div>
           <div style="background:#f0f0f0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:4px">
             <div style="height:100%;border-radius:4px;width:${barW}%;background:${f.erreicht?'#2e7d32':color}"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa">
-            <span>Ist: ${fmtEur(f.istGesamt)}</span>
-            <span>Soll: ${fmtEur(f.sollGesamt)}</span>
+            <span>Ist: ${fmtEur(f.istGesamt)} / Soll: ${fmtEur(f.sollGesamt)}</span>
+            <span>Ø Bon: ${f.avgBon!=null?fmtEur(f.avgBon):'–'} / Ziel: ${f.bonZiel!=null?fmtEur(f.bonZiel):'–'}</span>
           </div>
         </div>`;
       }).join('');
@@ -1327,7 +1336,8 @@ function renderVLHistorie() {
         <span class="akkordeon-title">${monatLabel}</span>
         <div class="akkordeon-meta">
           <div style="display:flex;gap:6px;align-items:center">
-            <span style="font-size:11px;color:#2e7d32;font-weight:600">${erreichtCount}/${filialen.length} ✓</span>
+            <span style="font-size:11px;color:#2e7d32;font-weight:600">${erreichtCount}/${filialen.length} Umsatz ✓</span>
+            <span style="font-size:11px;color:#2b6cb0;font-weight:600">${bonErreichtCount}/${filialen.length} Bon ✓</span>
             ${gesamtPct!=null?`<span style="font-size:11px;font-weight:600;color:${gesamtPct>=100?'#2e7d32':'#111'}">${gesamtPct.toFixed(0)}%</span>`:''}
           </div>
           <span class="akkordeon-betraege">${fmtEur(gesamtIst)} / ${fmtEur(gesamtSoll)}</span>
