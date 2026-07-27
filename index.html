@@ -615,7 +615,7 @@ async function fetchBranch(branch) {
     const BRANCH_TAB_NAMES = {};
     const tabName = BRANCH_TAB_NAMES[branch] || branch;
     // B17 hat Titelzeile in Zeile 1 → range ab A2 um sie zu überspringen
-    const rangeParam = branch === 'B17' ? '&range=A2:Z200' : branch === 'B12' ? '&range=A3:Z200' : '';
+    const rangeParam = branch === 'B17' ? '&range=A2:Z200' : branch === 'B12' ? '&range=A72:Z200' : '';
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}${rangeParam}`;
     const resp = await fetch(url);
     const text = await resp.text();
