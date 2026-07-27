@@ -660,6 +660,8 @@ async function fetchBranch(branch) {
         const cell = row.c[i];
         obj[key] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : null) : null;
       });
+      // Wiederholte Header-Zeilen überspringen (z.B. "Datum" als Datumswert)
+      if (obj.datum && typeof obj.datum === 'string' && obj.datum.toLowerCase().includes('datum')) continue;
       // Datum parsen
       if (obj.datum && typeof obj.datum === 'string' && obj.datum.startsWith('Date(')) {
         const parts = obj.datum.slice(5,-1).split(',').map(Number);
