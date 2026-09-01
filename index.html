@@ -1028,10 +1028,11 @@ function renderHistorie(rows) {
 
 // ═══ VERKAUFSLEITER ═══
 function renderVL() {
-  renderVLKarten();
-  renderVLMonat();
-  renderVLSollIst();
-  renderVLHistorie();
+  setTimeout(() => {
+    renderVLSollIst();
+    renderVLKarten();
+    renderVLMonat();
+  }, 50);
 }
 
 function renderVLUebersicht() {
