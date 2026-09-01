@@ -258,9 +258,9 @@ body{font-family:'Inter',sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:
   <!-- VERKAUFSLEITER VIEW -->
   <div id="view-vl" style="display:none">
     <div class="nav-tabs">
-      <div class="nav-tab active" onclick="switchTab(this,'vl-karten');renderVLKarten()">Filial-Karten</div>
-      <div class="nav-tab" onclick="switchTab(this,'vl-soll-ist');renderVLSollIst()">Soll/Ist</div>
-      <div class="nav-tab" onclick="switchTab(this,'vl-historie');renderVLHistorie()">Historie</div>
+      <div class="nav-tab active" onclick="switchTab(this,'vl-karten')">Filial-Karten</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-soll-ist')">Soll/Ist</div>
+      <div class="nav-tab" onclick="switchTab(this,'vl-historie')">Historie</div>
     </div>
     <div id="vl-karten" class="page active">
       <div class="filial-cards" id="vl-karten-grid"></div>
@@ -615,7 +615,8 @@ async function fetchBranch(branch) {
     const BRANCH_TAB_NAMES = {};
     const tabName = BRANCH_TAB_NAMES[branch] || branch;
     // B17 hat Titelzeile in Zeile 1 → range ab A2 um sie zu überspringen
-    const rangeParam = branch === 'B17' ? '&range=A2:Z200' : branch === 'B12' ? '&range=A72:Z200' : '';
+    const BRANCH_RANGES = { B17: 'A2:Z1000', B12: 'A72:Z1000', B8: 'A142:Z1000' };
+    const rangeParam = BRANCH_RANGES[branch] ? `&range=${BRANCH_RANGES[branch]}` : '&range=A1:Z1000';
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}${rangeParam}`;
     const resp = await fetch(url);
     const text = await resp.text();
@@ -660,8 +661,6 @@ async function fetchBranch(branch) {
         const cell = row.c[i];
         obj[key] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : null) : null;
       });
-      // Wiederholte Header-Zeilen überspringen (z.B. "Datum" als Datumswert)
-      if (obj.datum && typeof obj.datum === 'string' && obj.datum.toLowerCase().includes('datum')) continue;
       // Datum parsen
       if (obj.datum && typeof obj.datum === 'string' && obj.datum.startsWith('Date(')) {
         const parts = obj.datum.slice(5,-1).split(',').map(Number);
@@ -693,7 +692,7 @@ async function fetchBranch(branch) {
       rows.push(obj);
     }
     rows.sort((a,b) => (a._date||0) - (b._date||0));
-    return { rows: rows.slice(-60), monatsSoll, monatsAvgBon };
+    return { rows: rows.slice(-500), monatsSoll, monatsAvgBon };  // alle Monate
   } catch(e) {
     console.warn(`Fehler beim Laden von ${branch}:`, e);
     return { rows: [], monatsSoll: {} };
@@ -1302,7 +1301,7 @@ function renderVLHistorie() {
     const gesamtPct = gesamtSoll > 0 ? Math.min((gesamtIst/gesamtSoll)*100,100) : null;
 
     const filialenRows = filialen
-      .sort((a,b) => (b.istGesamt||0)-(a.istGesamt||0))
+      .sort((a,b) => BRANCHES.indexOf(a.branch) - BRANCHES.indexOf(b.branch))
       .map(f => {
         const color = BRANCH_COLORS[f.branch];
         const barW = f.pct != null ? f.pct.toFixed(0) : 0;
