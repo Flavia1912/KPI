@@ -584,6 +584,8 @@ async function loadData() {
   });
   setStatus('live');
   renderAll();
+  // Nochmal rendern nach kurzer Pause falls erster Render zu früh war
+  setTimeout(renderAll, 500);
 }
 
 async function fetchBonprognose() {
@@ -615,12 +617,9 @@ async function fetchBranch(branch) {
     const BRANCH_TAB_NAMES = {};
     const tabName = BRANCH_TAB_NAMES[branch] || branch;
     // B17 hat Titelzeile in Zeile 1 → range ab A2 um sie zu überspringen
-    const BRANCH_RANGES = {
-      B1: 'A70:Z1000', B5: 'A70:Z1000', B7: 'A70:Z1000',
-      B11: 'A70:Z1000', B16: 'A70:Z1000',
-      B12: 'A72:Z1000', B8: 'A142:Z1000', B17: 'A2:Z1000'
-    };
-    const rangeParam = `&range=${BRANCH_RANGES[branch] || 'A1:Z1000'}`;
+    // Kein fester Range - gviz auto-detect, aber mit tq=limit um alle Zeilen zu holen
+    const BRANCH_RANGES = { B17: 'A2:Z1000', B12: 'A72:Z1000', B8: 'A142:Z1000' };
+    const rangeParam = BRANCH_RANGES[branch] ? `&range=${BRANCH_RANGES[branch]}` : '';
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}${rangeParam}`;
     const resp = await fetch(url);
     const text = await resp.text();
@@ -1028,11 +1027,9 @@ function renderHistorie(rows) {
 
 // ═══ VERKAUFSLEITER ═══
 function renderVL() {
-  setTimeout(() => {
-    renderVLSollIst();
-    renderVLKarten();
-    renderVLMonat();
-  }, 50);
+  renderVLSollIst();
+  renderVLKarten();
+  renderVLMonat();
 }
 
 function renderVLUebersicht() {
