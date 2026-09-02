@@ -1255,95 +1255,80 @@ function toggleAkkordeon(el) {
 // ═══ VL MONATSHISTORIE ═══
 function renderVLHistorie() {
   const now = new Date();
-  const aktuellerMonat = now.getMonth();
-  const aktuellesJahr = now.getFullYear();
+  const aktMonat = now.getMonth();
+  const aktJahr = now.getFullYear();
 
-  // Alle vergangenen Monate aus allen Filialen ermitteln
+  // Alle abgeschlossenen Monate ab Mai 2026 ermitteln
   const monateSet = new Set();
   BRANCHES.forEach(b => {
     (allData[b]||[]).forEach(r => {
       if (!r._date) return;
-      const y = r._date.getFullYear();
-      const m = r._date.getMonth();
-      if (y === aktuellesJahr && m === aktuellerMonat) return;
+      const y = r._date.getFullYear(), m = r._date.getMonth();
+      if (y === aktJahr && m === aktMonat) return;
+      if (y < 2026 || (y === 2026 && m < 4)) return;
       monateSet.add(`${y}-${m}`);
     });
   });
 
-  const monate = Array.from(monateSet)
-    .map(k => { const [y,m] = k.split('-'); return { key: k, year: +y, month: +m }; })
-    .sort((a,b) => b.year !== a.year ? b.year - a.year : b.month - a.month);
+  const monate = [...monateSet]
+    .map(k => { const [y,m] = k.split('-'); return {y:+y,m:+m}; })
+    .sort((a,b) => b.y!==a.y ? b.y-a.y : b.m-a.m);
 
+  const el = document.getElementById('vl-historie-inhalt');
   if (!monate.length) {
-    document.getElementById('vl-historie-inhalt').innerHTML =
-      '<p style="color:#888;font-size:13px;padding:8px 0">Noch keine abgeschlossenen Monate vorhanden.</p>';
+    el.innerHTML = '<p style="color:#888;font-size:13px">Noch keine abgeschlossenen Monate.</p>';
     return;
   }
 
-  const html = monate.map(({ key, year, month }) => {
-    const monatLabel = new Date(year, month, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+  // Tabelle aufbauen
+  const monatHeaders = monate.map(({y,m}) =>
+    `<th style="padding:8px 12px;font-size:12px;font-weight:600;color:#888;white-space:nowrap">${new Date(y,m,1).toLocaleDateString('de-DE',{month:'short',year:'2-digit'})}</th>`
+  ).join('');
 
-    // Daten je Filiale für diesen Monat
-    const filialen = BRANCHES.map(b => {
-      const rows = (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===year && r._date.getMonth()===month);
-      if (!rows.length) return null;
-      const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0), 0);
-      const sollGesamt = getSollGesamt(b, year, month);
-      const pct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100, 100) : null;
-      const erreicht = sollGesamt > 0 && istGesamt >= sollGesamt;
-      const avgRet = avg(rows.map(r=>r.retoure_pct).filter(v=>v!=null));
-      return { branch: b, name: BRANCH_NAMES[b], istGesamt, sollGesamt, pct, erreicht, avgRet };
-    }).filter(Boolean);
-
-    if (!filialen.length) return '';
-
-    const gesamtIst = filialen.reduce((s,f) => s+f.istGesamt, 0);
-    const gesamtSoll = filialen.reduce((s,f) => s+f.sollGesamt, 0);
-    const erreichtCount = filialen.filter(f=>f.erreicht).length;
-    const gesamtPct = gesamtSoll > 0 ? Math.min((gesamtIst/gesamtSoll)*100,100) : null;
-
-    const filialenRows = filialen
-      .sort((a,b) => BRANCHES.indexOf(a.branch) - BRANCHES.indexOf(b.branch))
-      .map(f => {
-        const color = BRANCH_COLORS[f.branch];
-        const barW = f.pct != null ? f.pct.toFixed(0) : 0;
-        return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:600;border-left:3px solid ${color};padding-left:7px">${f.name}</span>
-            <span style="font-size:12px;font-weight:600;color:${f.erreicht?'#2e7d32':f.pct!=null?'#c62828':'#aaa'}">${f.pct!=null?f.pct.toFixed(0)+'%':'–'} ${f.erreicht?'✓':''}</span>
-          </div>
-          <div style="background:#f0f0f0;border-radius:4px;height:5px;overflow:hidden;margin-bottom:4px">
-            <div style="height:100%;border-radius:4px;width:${barW}%;background:${f.erreicht?'#2e7d32':color}"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:#aaa">
-            <span>Ist: ${fmtEur(f.istGesamt)}</span>
-            <span>Soll: ${fmtEur(f.sollGesamt)}</span>
-          </div>
-        </div>`;
-      }).join('');
-
-    return `<div class="akkordeon-item">
-      <div class="akkordeon-header" onclick="toggleAkkordeon(this.parentElement)">
-        <span class="akkordeon-chevron">▶</span>
-        <span class="akkordeon-title">${monatLabel}</span>
-        <div class="akkordeon-meta">
-          <div style="display:flex;gap:6px;align-items:center">
-            <span style="font-size:11px;color:#2e7d32;font-weight:600">${erreichtCount}/${filialen.length} ✓</span>
-            ${gesamtPct!=null?`<span style="font-size:11px;font-weight:600;color:${gesamtPct>=100?'#2e7d32':'#111'}">${gesamtPct.toFixed(0)}%</span>`:''}
-          </div>
-          <span class="akkordeon-betraege">${fmtEur(gesamtIst)} / ${fmtEur(gesamtSoll)}</span>
-        </div>
-      </div>
-      <div class="akkordeon-body" style="padding:0 16px 8px">
-        ${filialenRows}
-      </div>
-    </div>`;
+  const rows = BRANCHES.map(branch => {
+    const name = BRANCH_NAMES[branch];
+    const color = BRANCH_COLORS[branch];
+    const zellen = monate.map(({y,m}) => {
+      const rows = (allData[branch]||[]).filter(r => r._date && r._date.getFullYear()===y && r._date.getMonth()===m);
+      if (!rows.length) return '<td style="padding:8px 12px;text-align:center;color:#ccc">–</td>';
+      const istGes = rows.reduce((s,r)=>s+(r.ist_umsatz||0),0);
+      const sollGes = getSollGesamt(branch,y,m);
+      const umsatzOk = sollGes>0 && istGes>=sollGes;
+      const bons = rows.map(r=>r.bon).filter(v=>v!=null&&v>0);
+      const avgBon = bons.length ? bons.reduce((a,b)=>a+b,0)/bons.length : null;
+      const bonZiel = getBonZielFuerMonat(branch,y,m);
+      const bonOk = bonZiel!=null && avgBon!=null && avgBon>=bonZiel;
+      const u = umsatzOk ? '✓' : '✗';
+      const b = bonZiel==null ? '–' : bonOk ? '✓' : '✗';
+      const uCol = umsatzOk ? '#2e7d32' : '#c62828';
+      const bCol = bonZiel==null ? '#aaa' : bonOk ? '#2e7d32' : '#c62828';
+      return `<td style="padding:8px 12px;text-align:center">
+        <span style="color:${uCol};font-weight:600;font-size:13px">${u}</span>
+        <span style="color:#ccc;margin:0 3px">|</span>
+        <span style="color:${bCol};font-weight:600;font-size:13px">${b}</span>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td style="padding:8px 12px;white-space:nowrap;border-left:3px solid ${color};font-weight:600;font-size:13px">${name}</td>
+      ${zellen}
+    </tr>`;
   }).join('');
 
-  document.getElementById('vl-historie-inhalt').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten</p>';
+  el.innerHTML = `
+    <div style="overflow-x:auto">
+      <p style="font-size:11px;color:#aaa;margin-bottom:8px">✓ = erreicht &nbsp;|&nbsp; ✗ = nicht erreicht &nbsp;|&nbsp; Umsatz | Bon</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr>
+            <th style="padding:8px 12px;text-align:left;font-size:12px;font-weight:600;color:#888">Filiale</th>
+            ${monatHeaders}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
-// ═══ VERWALTUNG ═══
 function renderVW() {
   renderVLUebersicht(); // reuse ranking
   // Copy gesamt + ranking into vw
