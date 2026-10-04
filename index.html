@@ -616,8 +616,8 @@ async function fetchBranch(branch) {
     const BRANCH_TAB_NAMES = {};
     const tabName = BRANCH_TAB_NAMES[branch] || branch;
     // B17 hat Titelzeile in Zeile 1 → range ab A2 um sie zu überspringen
-    const BRANCH_RANGES = { B17: 'A2:Z500', B12: 'A72:Z500', B8: 'A142:Z500' };
-    const rangeParam = BRANCH_RANGES[branch] ? `&range=${BRANCH_RANGES[branch]}` : '';
+    // Jede Filiale hat ihren eigenen Sheet-Tab — keine Range-Einschränkung nötig
+    const rangeParam = '';
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}${rangeParam}`;
     const resp = await fetch(url);
     const text = await resp.text();
