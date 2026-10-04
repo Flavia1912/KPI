@@ -1264,17 +1264,19 @@ function renderVLHistorie() {
     return;
   }
 
-  // Monate ab Mai 2026 (Prämiensystem-Start), laufenden Monat einschließen wenn Ist-Daten vorhanden
+  // Monate ab Mai 2026 (Prämiensystem-Start)
   const now = new Date();
   const startYear = 2026, startMonth = 4; // 4 = Mai (0-basiert)
 
+  // Alle Monate ab Mai 2026 bis heute sammeln (aus allen Filialen)
   const monateSet = new Set();
   BRANCHES.forEach(b => {
     (allData[b]||[]).forEach(r => {
       if (!r._date) return;
       const y = r._date.getFullYear(), m = r._date.getMonth();
       if (y < startYear || (y === startYear && m < startMonth)) return;
-      if (r.ist_umsatz != null && r.ist_umsatz > 0) monateSet.add(`${y}-${String(m).padStart(2,'0')}`);
+      // Monat aufnehmen wenn Soll- ODER Ist-Daten vorhanden
+      if (r.soll_umsatz != null || r.ist_umsatz != null) monateSet.add(`${y}-${String(m).padStart(2,'0')}`);
     });
   });
 
@@ -1297,31 +1299,49 @@ function renderVLHistorie() {
   const tableRows = BRANCHES.map(b => {
     const cells = monate.map(({year,month}) => {
       const rows = (allData[b]||[]).filter(r =>
-        r._date && r._date.getFullYear()===year && r._date.getMonth()===month && r.ist_umsatz != null
+        r._date && r._date.getFullYear()===year && r._date.getMonth()===month
       );
-      if (!rows.length) return `<td style="text-align:center;padding:8px 6px;color:#ddd;font-size:16px">–</td>`;
+      // Zeilen mit Ist-Daten
+      const istRows = rows.filter(r => r.ist_umsatz != null && r.ist_umsatz > 0);
 
-      const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0), 0);
+      // Keine Daten für diese Filiale in diesem Monat
+      if (!rows.length) return `<td style="text-align:center;padding:8px 4px"></td>`;
+
+      const istGesamt = istRows.reduce((s,r) => s+(r.ist_umsatz||0), 0);
       const sollGesamt = getSollGesamt(b, year, month);
-      const pct = sollGesamt > 0 ? (istGesamt/sollGesamt)*100 : null;
-      const erreicht = pct != null && pct >= 100;
       const laufend = year === now.getFullYear() && month === now.getMonth();
 
+      // Noch keine Ist-Daten eingetragen (aber Soll vorhanden)
+      if (!istRows.length) {
+        return `<td style="text-align:center;padding:6px 4px;background:#f5f5f5;border-radius:4px">
+          <div style="font-size:11px;color:#bbb">–</div>
+        </td>`;
+      }
+
+      const pct = sollGesamt > 0 ? (istGesamt/sollGesamt)*100 : null;
+      const umsatzErreicht = pct != null && pct >= 100;
+
       // Bon-Prämie
-      const avgBon = avg(rows.map(r=>r.bon).filter(v=>v!=null&&v>0));
+      const avgBon = avg(istRows.map(r=>r.bon).filter(v=>v!=null&&v>0));
       const bonZiel = getBonZielFuerMonat(b, year, month);
       const bonErreicht = avgBon != null && bonZiel != null && avgBon >= bonZiel;
+      const bonHatDaten = avgBon != null && bonZiel != null;
 
-      const bg = laufend ? '#fff8e1' : erreicht ? '#e8f5e9' : '#ffebee';
-      const icon = laufend ? '▶' : erreicht ? '✓' : '✗';
-      const iconColor = laufend ? '#f57f17' : erreicht ? '#2e7d32' : '#c62828';
+      // Farbe & Icon für Umsatz
+      const bg = laufend ? '#fff8e1' : umsatzErreicht ? '#e8f5e9' : '#ffebee';
+      const uIcon = laufend ? '▶' : umsatzErreicht ? '✓' : '✗';
+      const uColor = laufend ? '#f57f17' : umsatzErreicht ? '#2e7d32' : '#c62828';
       const pctText = pct != null ? pct.toFixed(0)+'%' : '';
-      const bonIcon = bonErreicht ? '🍞' : '';
+
+      // Bon-Zeile: "Bon ✓" grün / "Bon ✗" rot / leer wenn keine Daten
+      const bonLine = bonHatDaten
+        ? `<div style="font-size:9px;font-weight:600;color:${bonErreicht?'#2e7d32':'#c62828'};margin-top:1px;letter-spacing:.2px">Bon ${bonErreicht?'✓':'✗'}</div>`
+        : '';
 
       return `<td style="text-align:center;padding:6px 4px;background:${bg};border-radius:4px">
-        <div style="font-size:16px;color:${iconColor};font-weight:700;line-height:1">${icon}</div>
-        <div style="font-size:10px;color:#666;margin-top:2px">${pctText}</div>
-        ${bonIcon?`<div style="font-size:10px">${bonIcon}</div>`:''}
+        <div style="font-size:15px;color:${uColor};font-weight:700;line-height:1">${uIcon}</div>
+        <div style="font-size:10px;color:#666;margin-top:1px">${pctText}</div>
+        ${bonLine}
       </td>`;
     }).join('');
 
@@ -1337,7 +1357,7 @@ function renderVLHistorie() {
       <span><span style="color:#2e7d32;font-weight:700">✓</span> Umsatzziel erreicht</span>
       <span><span style="color:#c62828;font-weight:700">✗</span> Ziel verfehlt</span>
       <span><span style="color:#f57f17;font-weight:700">▶</span> Laufender Monat</span>
-      <span>🍞 Bon-Ziel erreicht</span>
+      <span><span style="color:#2e7d32;font-weight:700;font-size:10px">Bon ✓</span> / <span style="color:#c62828;font-weight:700;font-size:10px">Bon ✗</span> Bon-Prämie</span>
     </div>
     <div style="overflow-x:auto;margin-top:8px">
       <table style="width:100%;border-collapse:separate;border-spacing:3px;min-width:420px">
