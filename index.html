@@ -680,8 +680,8 @@ async function fetchBranch(branch) {
         const key = `${obj._date.getFullYear()}-${obj._date.getMonth()}`;
         monatsSoll[key] = (monatsSoll[key] || 0) + obj.soll_umsatz;
       }
-      // Nur Zeilen mit Ist-Umsatz für Anzeige
-      if (!obj.ist_umsatz) continue;
+      // Zeilen ohne Datum oder ohne Soll-Umsatz überspringen
+      if (!obj._date || (!obj.ist_umsatz && !obj.soll_umsatz)) continue;
       // Retoure normalisieren
       if (obj.retoure_pct !== null && obj.retoure_pct < 2) {
         obj.retoure_pct = obj.retoure_pct * 100;
@@ -1197,17 +1197,16 @@ function renderVLSollIst() {
 
   let html = '';
   BRANCHES.forEach(b => {
+    // Alle Zeilen des laufenden Monats (auch ohne Ist-Umsatz)
     const rows = (allData[b]||[]).filter(r => r._date && r._date.getFullYear()===refYear && r._date.getMonth()===refMonth);
     if (!rows.length) return;
-    const istGesamt = rows.reduce((s,r) => s+(r.ist_umsatz||0),0);
+    // Nur Zeilen mit Ist-Umsatz für die Summe
+    const istRows = rows.filter(r => r.ist_umsatz != null && r.ist_umsatz > 0);
+    const istGesamt = istRows.reduce((s,r) => s+(r.ist_umsatz||0),0);
     const sollGesamt = getSollGesamt(b, refYear, refMonth);
-    const pct = sollGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100,100) : null;
+    const pct = sollGesamt > 0 && istGesamt > 0 ? Math.min((istGesamt/sollGesamt)*100,100) : null;
     const erreicht = pct != null && istGesamt >= sollGesamt;
     const color = BRANCH_COLORS[b];
-    const avgRetoure = avg(rows.map(r=>r.retoure_pct).filter(v=>v!=null));
-
-    // Ampelfarbe für Retoure-Pill
-    const retPill = pillRetoure(avgRetoure);
 
     const barHtml = pct != null ? `
       <div class="akkordeon-bar-row">
@@ -1217,13 +1216,18 @@ function renderVLSollIst() {
         <span class="mini-bar-label" style="font-weight:600;color:${erreicht?'#2e7d32':'#111'}">${pct.toFixed(0)}%</span>
       </div>` : '';
 
-    const tagesRows = [...rows].reverse().map(r => `<tr>
-      <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
-      <td>${fmtEur(r.soll_umsatz)}</td>
-      <td>${fmtEur(r.ist_umsatz)}</td>
-      <td style="color:${(r.diff_umsatz||0)<0?'#c62828':'#2e7d32'}">${fmtEur(r.diff_umsatz)}</td>
-      <td>${pillRetoure(r.retoure_pct)} ${fmtPct(r.retoure_pct)}</td>
-    </tr>`).join('');
+    const tagesRows = [...rows].reverse().map(r => {
+      const hatIst = r.ist_umsatz != null && r.ist_umsatz > 0;
+      const istColor = hatIst ? '' : 'color:#bbb';
+      const diffColor = !hatIst ? 'color:#bbb' : (r.diff_umsatz||0)<0?'color:#c62828':'color:#2e7d32';
+      return `<tr style="${!hatIst?'opacity:.65':''}">
+        <td>${r._date ? r._date.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) : '–'}</td>
+        <td>${fmtEur(r.soll_umsatz)}</td>
+        <td style="${istColor}">${hatIst ? fmtEur(r.ist_umsatz) : '–'}</td>
+        <td style="${diffColor}">${hatIst ? fmtEur(r.diff_umsatz) : '–'}</td>
+        <td>${hatIst ? pillRetoure(r.retoure_pct)+' '+fmtPct(r.retoure_pct) : '–'}</td>
+      </tr>`;
+    }).join('');
 
     html += `
       <div class="akkordeon-item">
@@ -1244,7 +1248,8 @@ function renderVLSollIst() {
       </div>`;
   });
 
-  document.getElementById('vl-soll-ist-table').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten</p>';
+  document.getElementById('vl-sollIst-title').textContent = `Soll vs. Ist – ${monatLabel}`;
+  document.getElementById('vl-soll-ist-table').innerHTML = html || '<p style="color:#888;font-size:13px">Keine Daten für ' + monatLabel + '</p>';
 }
 
 function toggleAkkordeon(el) {
